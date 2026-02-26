@@ -29,7 +29,7 @@ const menuItems: MenuItem[] = [
         icon: <Users size={20} />,
         children: [
             { href: '/population', label: 'ประชากรทั้งหมด', icon: <Users size={16} /> },
-            { href: '/population/house', label: 'ทะเบียนบ้าน', icon: <Map size={16} /> },
+            { href: '/population/house', label: 'หลังคาเรือน', icon: <Map size={16} /> },
             { href: '/population/age', label: 'แยกตามช่วงอายุ', icon: <BarChart3 size={16} /> },
         ],
     },

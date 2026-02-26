@@ -7,7 +7,7 @@ import Sidebar from './Sidebar'
 const MENU_LABELS: Record<string, string> = {
     '/': 'ภาพรวม Dashboard',
     '/population': 'ประชากรทั้งหมด',
-    '/population/house': 'ทะเบียนบ้าน',
+    '/population/house': 'หลังคาเรือน',
     '/population/age': 'แยกตามช่วงอายุ',
     '/opd': 'บริการผู้ป่วยนอก (OPD)',
     '/opd/visit': 'การให้บริการ OPD',

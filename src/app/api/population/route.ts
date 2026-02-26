@@ -2,28 +2,28 @@ import { NextResponse } from 'next/server'
 import mysql from 'mysql2/promise'
 
 const dbConfig = {
-    host: process.env.DB_HOST ?? '127.0.0.1',
-    port: Number(process.env.DB_PORT ?? 3306),
-    user: process.env.DB_USER ?? 'root',
-    password: process.env.DB_PASS ?? '',
-    database: process.env.DB_NAME ?? 'datacenter',
+  host: process.env.DB_HOST ?? '127.0.0.1',
+  port: Number(process.env.DB_PORT ?? 3306),
+  user: process.env.DB_USER ?? 'root',
+  password: process.env.DB_PASS ?? '',
+  database: process.env.DB_NAME ?? 'datacenter',
 }
 
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url)
-    const ageMin = searchParams.get('ageMin') ?? '0'
-    const ageMax = searchParams.get('ageMax') ?? '150'
-    const sex = searchParams.get('sex') ?? ''
-    const type = searchParams.get('type') ?? 'all'   // all | age-group | house
+  const { searchParams } = new URL(request.url)
+  const ageMin = searchParams.get('ageMin') ?? '0'
+  const ageMax = searchParams.get('ageMax') ?? '150'
+  const sex = searchParams.get('sex') ?? ''
+  const type = searchParams.get('type') ?? 'all'   // all | age-group | house
 
-    try {
-        const conn = await mysql.createConnection(dbConfig)
+  try {
+    const conn = await mysql.createConnection(dbConfig)
 
-        let rows: unknown[] = []
+    let rows: unknown[] = []
 
-        if (type === 'all') {
-            // ทั้งหมด + filter อายุ + เพศ
-            let sql = `
+    if (type === 'all') {
+      // ทั้งหมด + filter อายุ + เพศ
+      let sql = `
         SELECT
           TIMESTAMPDIFF(YEAR, birth, CURDATE()) AS age,
           sex,
@@ -33,15 +33,15 @@ export async function GET(request: Request) {
         WHERE discharge IS NULL OR discharge = ''
           AND TIMESTAMPDIFF(YEAR, birth, CURDATE()) BETWEEN ? AND ?
       `
-            const params: (string | number)[] = [Number(ageMin), Number(ageMax)]
-            if (sex) { sql += ` AND sex = ?`; params.push(sex) }
-            sql += ` GROUP BY age, sex, typearea ORDER BY age`
-            const [r] = await conn.execute(sql, params)
-            rows = r as unknown[]
+      const params: (string | number)[] = [Number(ageMin), Number(ageMax)]
+      if (sex) { sql += ` AND sex = ?`; params.push(sex) }
+      sql += ` GROUP BY age, sex, typearea ORDER BY age`
+      const [r] = await conn.execute(sql, params)
+      rows = r as unknown[]
 
-        } else if (type === 'age-group') {
-            // แบ่งกลุ่มอายุ (เดิม)
-            let sql = `
+    } else if (type === 'age-group') {
+      // แบ่งกลุ่มอายุ (เดิม)
+      let sql = `
         SELECT
           CASE
             WHEN TIMESTAMPDIFF(YEAR, birth, CURDATE()) < 1  THEN '< 1 ปี'
@@ -60,15 +60,15 @@ export async function GET(request: Request) {
         WHERE (discharge = '9' OR discharge IS NULL OR discharge = '')
           AND TIMESTAMPDIFF(YEAR, birth, CURDATE()) BETWEEN ? AND ?
       `
-            const params: (string | number)[] = [Number(ageMin), Number(ageMax)]
-            if (sex) { sql += ` AND sex = ?`; params.push(sex) }
-            sql += ` GROUP BY age_group, sex ORDER BY FIELD(age_group,'< 1 ปี','1-5 ปี','6-14 ปี','15-24 ปี','25-34 ปี','35-44 ปี','45-54 ปี','55-64 ปี','65 ปีขึ้นไป')`
-            const [r] = await conn.execute(sql, params)
-            rows = r as unknown[]
+      const params: (string | number)[] = [Number(ageMin), Number(ageMax)]
+      if (sex) { sql += ` AND sex = ?`; params.push(sex) }
+      sql += ` GROUP BY age_group, sex ORDER BY FIELD(age_group,'< 1 ปี','1-5 ปี','6-14 ปี','15-24 ปี','25-34 ปี','35-44 ปี','45-54 ปี','55-64 ปี','65 ปีขึ้นไป')`
+      const [r] = await conn.execute(sql, params)
+      rows = r as unknown[]
 
-        } else if (type === 'hosp-age-5yr') {
-            // ประชากรแยกสถานบริการ ช่วงอายุ 5 ปี (Type 1,3 ไม่จำหน่าย)
-            const sql = `
+    } else if (type === 'hosp-age-5yr') {
+      // ประชากรแยกสถานบริการ ช่วงอายุ 5 ปี (Type 1,3 ไม่จำหน่าย)
+      const sql = `
         SELECT
           p.hospcode,
           h.hosname,
@@ -96,21 +96,32 @@ export async function GET(request: Request) {
         GROUP BY p.hospcode, h.hosname, age_group, p.sex
         ORDER BY p.hospcode, age_group, p.sex
       `
-            const [r] = await conn.execute(sql)
-            rows = r as unknown[]
+      const [r] = await conn.execute(sql)
+      rows = r as unknown[]
 
-        } else if (type === 'house') {
-            const [r] = await conn.execute(`SELECT COUNT(*) AS total FROM home`)
-            rows = r as unknown[]
-        }
-
-        await conn.end()
-        return NextResponse.json({ success: true, data: rows })
-    } catch (err) {
-        console.error(err)
-        return NextResponse.json(
-            { success: false, error: String(err) },
-            { status: 500 }
-        )
+    } else if (type === 'house') {
+      const sql = `
+              SELECT 
+                h.hospcode, 
+                c.hosname, 
+                h.village, 
+                COUNT(*) as total 
+              FROM home h
+              LEFT JOIN c_hos c ON h.hospcode = c.hospcode
+              GROUP BY h.hospcode, c.hosname, h.village
+              ORDER BY h.hospcode, h.village
+            `
+      const [r] = await conn.execute(sql)
+      rows = r as unknown[]
     }
+
+    await conn.end()
+    return NextResponse.json({ success: true, data: rows })
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json(
+      { success: false, error: String(err) },
+      { status: 500 }
+    )
+  }
 }
