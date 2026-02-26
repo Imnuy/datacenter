@@ -36,10 +36,11 @@ export async function GET(request: Request) {
             const params: (string | number)[] = [Number(ageMin), Number(ageMax)]
             if (sex) { sql += ` AND sex = ?`; params.push(sex) }
             sql += ` GROUP BY age, sex, typearea ORDER BY age`
-                ;[rows] = await conn.execute(sql, params)
+            const [r] = await conn.execute(sql, params)
+            rows = r as unknown[]
 
         } else if (type === 'age-group') {
-            // แบ่งกลุ่มอายุ
+            // แบ่งกลุ่มอายุ (เดิม)
             let sql = `
         SELECT
           CASE
@@ -56,13 +57,47 @@ export async function GET(request: Request) {
           sex,
           COUNT(*) AS total
         FROM person
-        WHERE (discharge IS NULL OR discharge = '')
+        WHERE (discharge = '9' OR discharge IS NULL OR discharge = '')
           AND TIMESTAMPDIFF(YEAR, birth, CURDATE()) BETWEEN ? AND ?
       `
             const params: (string | number)[] = [Number(ageMin), Number(ageMax)]
             if (sex) { sql += ` AND sex = ?`; params.push(sex) }
             sql += ` GROUP BY age_group, sex ORDER BY FIELD(age_group,'< 1 ปี','1-5 ปี','6-14 ปี','15-24 ปี','25-34 ปี','35-44 ปี','45-54 ปี','55-64 ปี','65 ปีขึ้นไป')`
-                ;[rows] = await conn.execute(sql, params)
+            const [r] = await conn.execute(sql, params)
+            rows = r as unknown[]
+
+        } else if (type === 'hosp-age-5yr') {
+            // ประชากรแยกสถานบริการ ช่วงอายุ 5 ปี (Type 1,3 ไม่จำหน่าย)
+            const sql = `
+        SELECT
+          p.hospcode,
+          h.hosname,
+          CASE WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 5 THEN '0-4'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 10 THEN '5-9'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 15 THEN '10-14'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 20 THEN '15-19'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 25 THEN '20-24'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 30 THEN '25-29'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 35 THEN '30-34'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 40 THEN '35-39'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 45 THEN '40-44'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 50 THEN '45-49'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 55 THEN '50-54'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) < 60 THEN '55-59'
+               WHEN TIMESTAMPDIFF(YEAR, p.birth, CURDATE()) >= 60 THEN '60+'
+               ELSE 'Unknown'
+          END AS age_group,
+          p.sex,
+          COUNT(*) as total
+        FROM person p
+        LEFT JOIN c_hos h ON p.hospcode = h.hospcode
+        WHERE p.typearea IN ('1', '3')
+          AND (p.discharge = '9' OR p.discharge IS NULL OR p.discharge = '')
+        GROUP BY p.hospcode, h.hosname, age_group, p.sex
+        ORDER BY p.hospcode, age_group, p.sex
+      `
+            const [r] = await conn.execute(sql)
+            rows = r as unknown[]
 
         } else if (type === 'house') {
             const [r] = await conn.execute(`SELECT COUNT(*) AS total FROM home`)
