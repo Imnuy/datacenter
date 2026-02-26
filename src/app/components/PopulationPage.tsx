@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, Fragment } from 'react'
 import { Users, RefreshCw, BarChart3, Download } from 'lucide-react'
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LabelList, Cell
@@ -216,11 +216,11 @@ export default function PopulationPage() {
                             {/* Header Row 2: Sex */}
                             <tr>
                                 {AGE_GROUPS.map(g => (
-                                    <optgroup key={g} style={{ display: 'contents' }}>
+                                    <Fragment key={g}>
                                         <th style={{ padding: '6px', borderBottom: '2px solid var(--accent)', textAlign: 'right', color: '#0288d1', fontWeight: 500 }}>ช</th>
                                         <th style={{ padding: '6px', borderBottom: '2px solid var(--accent)', textAlign: 'right', color: '#e91e63', fontWeight: 500 }}>ญ</th>
                                         <th style={{ padding: '6px', borderBottom: '2px solid var(--accent)', borderRight: '1px solid var(--border)', textAlign: 'right', color: 'var(--accent)', fontWeight: 600 }}>รวม</th>
-                                    </optgroup>
+                                    </Fragment>
                                 ))}
                                 <th style={{ padding: '6px', borderBottom: '2px solid var(--accent)', textAlign: 'right', background: 'var(--accent-mid)', color: '#0288d1', fontWeight: 600 }}>ชาย</th>
                                 <th style={{ padding: '6px', borderBottom: '2px solid var(--accent)', textAlign: 'right', background: 'var(--accent-mid)', color: '#e91e63', fontWeight: 600 }}>หญิง</th>
@@ -247,11 +247,11 @@ export default function PopulationPage() {
                                             {h.hosname}
                                         </td>
                                         {AGE_GROUPS.map(g => (
-                                            <optgroup key={g} style={{ display: 'contents' }}>
+                                            <Fragment key={g}>
                                                 <td style={{ padding: '8px', textAlign: 'right', color: '#0288d1' }}>{h.ageGroups[g].m.toLocaleString()}</td>
                                                 <td style={{ padding: '8px', textAlign: 'right', color: '#e91e63' }}>{h.ageGroups[g].f.toLocaleString()}</td>
                                                 <td style={{ padding: '8px', borderRight: '1px solid var(--border)', textAlign: 'right', fontWeight: 600, color: 'var(--text-secondary)' }}>{h.ageGroups[g].t.toLocaleString()}</td>
-                                            </optgroup>
+                                            </Fragment>
                                         ))}
                                         <td style={{ padding: '8px', textAlign: 'right', background: 'var(--accent-light)', color: '#0288d1', fontWeight: 600 }}>{h.totalMale.toLocaleString()}</td>
                                         <td style={{ padding: '8px', textAlign: 'right', background: 'var(--accent-light)', color: '#e91e63', fontWeight: 600 }}>{h.totalFemale.toLocaleString()}</td>
@@ -267,11 +267,11 @@ export default function PopulationPage() {
                                         รวมทุกสถานบริการ
                                     </td>
                                     {AGE_GROUPS.map(g => (
-                                        <optgroup key={g} style={{ display: 'contents' }}>
+                                        <Fragment key={g}>
                                             <td style={{ padding: '12px 8px', textAlign: 'right' }}>{totalRow.ageGroups[g].m.toLocaleString()}</td>
                                             <td style={{ padding: '12px 8px', textAlign: 'right' }}>{totalRow.ageGroups[g].f.toLocaleString()}</td>
                                             <td style={{ padding: '12px 8px', borderRight: '1px solid rgba(255,255,255,0.2)', textAlign: 'right', fontWeight: 700 }}>{totalRow.ageGroups[g].t.toLocaleString()}</td>
-                                        </optgroup>
+                                        </Fragment>
                                     ))}
                                     <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: 600, background: 'var(--accent-hover)' }}>{totalRow.totalMale.toLocaleString()}</td>
                                     <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: 600, background: 'var(--accent-hover)' }}>{totalRow.totalFemale.toLocaleString()}</td>
