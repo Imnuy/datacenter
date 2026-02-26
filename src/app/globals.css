@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #f0f7f0;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #e8f5e9;
+  --bg-active: #d0ead1;
+  --border: #c8e6c9;
+  --border-light: #e8f5e9;
+
+  --text-primary: #1b3a1f;
+  --text-secondary: #2e6b34;
+  --text-muted: #6a9e6e;
+
+  --accent: #2e7d32;
+  --accent-hover: #1b5e20;
+  --accent-light: rgba(46, 125, 50, 0.10);
+  --accent-mid: rgba(46, 125, 50, 0.18);
+
+  --success: #43a047;
+  --warning: #f9a825;
+  --danger: #e53935;
+  --info: #0288d1;
+
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 72px;
+
+  --shadow-sm: 0 1px 4px rgba(46, 125, 50, 0.08);
+  --shadow-md: 0 4px 16px rgba(46, 125, 50, 0.12);
+  --shadow-lg: 0 8px 32px rgba(46, 125, 50, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s ease forwards;
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}

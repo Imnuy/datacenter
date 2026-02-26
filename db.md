@@ -1,0 +1,4 @@
+SRC_HOST = '192.168.101.135'
+SRC_USER = 'root'
+SRC_PASS = '112233'
+SRC_DB   = 'f43watbot'
