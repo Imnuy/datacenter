@@ -24,6 +24,11 @@ const menuItems: MenuItem[] = [
         icon: <LayoutDashboard size={20} />,
     },
     {
+        href: '/map',
+        label: 'แผนที่หน่วยบริการ',
+        icon: <Map size={20} />,
+    },
+    {
         href: '/population', // Serves as the base path for parent active state
         label: 'ข้อมูลประชากร',
         icon: <Users size={20} />,

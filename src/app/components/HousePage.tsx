@@ -17,7 +17,7 @@ interface HospData {
     hospcode: string
     hosname: string
     totalHomes: number
-    villages: { name: string, total: number }[]
+    villages: Record<string, number>
 }
 
 const COLORS = ['#2e7d32', '#43a047', '#66bb6a', '#81c784', '#0288d1', '#0277bd', '#f57c00', '#e65100']
@@ -47,8 +47,9 @@ export default function HousePage() {
     }, [fetchData])
 
     // Transform Data
-    const { hospList, chartData, grandTotal } = useMemo(() => {
+    const { hospList, chartData, grandTotal, allVillages, colTotals } = useMemo(() => {
         const hospMap: Record<string, HospData> = {}
+        const villageSet = new Set<string>()
 
         rawData.forEach(r => {
             if (!hospMap[r.hospcode]) {
@@ -56,7 +57,7 @@ export default function HousePage() {
                     hospcode: r.hospcode,
                     hosname: r.hosname || 'ไม่ระบุสถานบริการ',
                     totalHomes: 0,
-                    villages: [],
+                    villages: {},
                 }
             }
             const h = hospMap[r.hospcode]
@@ -65,14 +66,19 @@ export default function HousePage() {
 
             // Format village string
             const vName = !r.village || r.village.trim() === '' ? 'ไม่ระบุหมู่' : `หมู่ ${Number(r.village)}`
-            h.villages.push({ name: vName, total: count })
+            villageSet.add(vName)
+            h.villages[vName] = (h.villages[vName] || 0) + count
         })
 
         const tData = Object.values(hospMap).sort((a, b) => a.hospcode.localeCompare(b.hospcode))
 
-        // Sort villages inside each hosp
-        tData.forEach(h => {
-            h.villages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+        // Sort all unique villages
+        const allV = Array.from(villageSet).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+
+        // Calculate column totals
+        const cTotals: Record<string, number> = {}
+        allV.forEach(v => {
+            cTotals[v] = tData.reduce((sum, h) => sum + (h.villages[v] || 0), 0)
         })
 
         let sum = 0
@@ -86,7 +92,7 @@ export default function HousePage() {
 
         cData.sort((a, b) => b.รวมหลังคาเรือน - a.รวมหลังคาเรือน)
 
-        return { hospList: tData, chartData: cData, grandTotal: sum }
+        return { hospList: tData, chartData: cData, grandTotal: sum, allVillages: allV, colTotals: cTotals }
     }, [rawData])
 
     return (
@@ -145,7 +151,7 @@ export default function HousePage() {
                     background: 'var(--bg-primary)'
                 }}>
                     <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Map size={16} /> ตารางจำนวนหลังคาเรือน
+                        <Map size={16} /> ตารางจำนวนหลังคาเรือน (แยกตามหน่วยบริการและหมู่บ้าน)
                     </span>
                     <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         รวมทั้งหมด <strong style={{ color: 'var(--accent)', fontSize: '16px' }}>{grandTotal.toLocaleString()}</strong> หลัง
@@ -154,58 +160,74 @@ export default function HousePage() {
 
                 {/* Table Container */}
                 <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: '800px' }}>
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--accent-light)' }}>
                             <tr>
-                                <th style={{ padding: '12px 14px', borderBottom: '2px solid var(--accent)', textAlign: 'left', color: 'var(--accent)', fontWeight: 600, width: '40%' }}>
-                                    สถานบริการ / หมู่บ้าน
+                                <th style={{ padding: '12px 14px', borderBottom: '2px solid var(--accent)', borderRight: '1px solid var(--border)', textAlign: 'left', color: 'var(--accent)', fontWeight: 700, position: 'sticky', left: 0, background: 'var(--accent-light)', zIndex: 11, minWidth: '180px' }}>
+                                    สถานบริการ
                                 </th>
-                                <th style={{ padding: '12px 14px', borderBottom: '2px solid var(--accent)', textAlign: 'right', color: 'var(--accent)', fontWeight: 600 }}>
-                                    จำนวนหลังคาเรือน (หลัง)
+                                {allVillages?.map(v => (
+                                    <th key={v} style={{ padding: '12px 14px', borderBottom: '2px solid var(--accent)', borderRight: '1px solid var(--border)', textAlign: 'right', color: 'var(--accent)', fontWeight: 600, minWidth: '80px' }}>
+                                        {v}
+                                    </th>
+                                ))}
+                                <th style={{ padding: '12px 14px', borderBottom: '2px solid var(--accent)', textAlign: 'right', background: 'var(--accent-mid)', color: 'var(--accent)', fontWeight: 700, minWidth: '100px' }}>
+                                    รวม (หลัง)
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={2} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                    <td colSpan={(allVillages?.length || 0) + 2} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                         กำลังประมวลผลข้อมูล...
                                     </td>
                                 </tr>
                             ) : hospList.length === 0 ? (
                                 <tr>
-                                    <td colSpan={2} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                    <td colSpan={(allVillages?.length || 0) + 2} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                         ไม่พบข้อมูล
                                     </td>
                                 </tr>
                             ) : (
                                 hospList.map((h, i) => (
-                                    <Fragment key={h.hospcode}>
-                                        {/* Hospital Header Row */}
-                                        <tr style={{ background: i % 2 === 0 ? 'var(--bg-secondary)' : 'var(--bg-primary)' }}>
-                                            <td style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <div style={{ width: '4px', height: '16px', background: 'var(--accent)', borderRadius: '4px' }} />
-                                                {h.hosname}
-                                            </td>
-                                            <td style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', textAlign: 'right', fontWeight: 700, color: 'var(--accent)' }}>
-                                                {h.totalHomes.toLocaleString()}
-                                            </td>
-                                        </tr>
-                                        {/* Villages Details Rows */}
-                                        {h.villages.map((v, j) => (
-                                            <tr key={`${h.hospcode}-${v.name}`} style={{ background: i % 2 === 0 ? 'var(--bg-secondary)' : 'var(--bg-primary)', opacity: 0.9 }}>
-                                                <td style={{ padding: '10px 14px 10px 38px', borderBottom: j === h.villages.length - 1 ? '1px solid var(--border)' : 'none', color: 'var(--text-secondary)' }}>
-                                                    {v.name}
+                                    <tr key={h.hospcode} style={{ background: i % 2 === 0 ? 'var(--bg-secondary)' : 'var(--bg-primary)' }}>
+                                        <td style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)', fontWeight: 600, color: 'var(--text-primary)', position: 'sticky', left: 0, background: i % 2 === 0 ? 'var(--bg-secondary)' : 'var(--bg-primary)', zIndex: 1 }}>
+                                            {h.hosname}
+                                        </td>
+                                        {allVillages.map(v => {
+                                            const val = h.villages[v]
+                                            return (
+                                                <td key={v} style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', borderRight: '1px solid var(--border)', textAlign: 'right', color: val ? '#0288d1' : 'var(--border)' }}>
+                                                    {val ? val.toLocaleString() : '-'}
                                                 </td>
-                                                <td style={{ padding: '10px 14px', borderBottom: j === h.villages.length - 1 ? '1px solid var(--border)' : 'none', textAlign: 'right', color: 'var(--text-secondary)' }}>
-                                                    {v.total.toLocaleString()}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </Fragment>
+                                            )
+                                        })}
+                                        <td style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', textAlign: 'right', fontWeight: 700, background: 'var(--accent-light)', color: 'var(--accent)' }}>
+                                            {h.totalHomes.toLocaleString()}
+                                        </td>
+                                    </tr>
                                 ))
                             )}
                         </tbody>
+                        {/* Footer TFoot component to show grand total */}
+                        {hospList.length > 0 && (
+                            <tfoot style={{ position: 'sticky', bottom: 0, zIndex: 10 }}>
+                                <tr>
+                                    <td style={{ padding: '12px 14px', background: 'var(--accent)', color: 'white', fontWeight: 700, borderRight: '1px solid rgba(255,255,255,0.2)', position: 'sticky', left: 0, zIndex: 11 }}>
+                                        รวมทุกสถานบริการ
+                                    </td>
+                                    {allVillages.map(v => (
+                                        <td key={v} style={{ padding: '12px 14px', background: 'var(--accent)', color: 'white', fontWeight: 600, textAlign: 'right', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+                                            {colTotals[v] ? colTotals[v].toLocaleString() : '-'}
+                                        </td>
+                                    ))}
+                                    <td style={{ padding: '12px 14px', background: '#1b5e20', color: 'white', fontWeight: 700, textAlign: 'right' }}>
+                                        {grandTotal.toLocaleString()}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        )}
                     </table>
                 </div>
             </div>
