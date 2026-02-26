@@ -161,38 +161,6 @@ export default function DashboardOverview() {
                 {stats.map(s => <StatCard key={s.title} {...s} />)}
             </div>
 
-            {/* Info Banner */}
-            <div style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border)',
-                borderRadius: '14px',
-                padding: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-            }}>
-                <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
-                    background: 'rgba(59,130,246,0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                }}>
-                    <TrendingUp size={24} color="var(--accent)" />
-                </div>
-                <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                        ระบบข้อมูล 43 แฟ้ม
-                    </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                        เชื่อมต่อกับฐานข้อมูล MySQL at <code style={{ color: 'var(--accent)', fontSize: '12px' }}>192.168.101.135</code> · database: <code style={{ color: 'var(--accent)', fontSize: '12px' }}>f43watbot</code>
-                        {' '}· user: <code style={{ color: 'var(--accent)', fontSize: '12px' }}>root</code> · เลือกเมนูด้านซ้ายเพื่อดูข้อมูล
-                    </div>
-                </div>
-            </div>
         </div>
     )
 }

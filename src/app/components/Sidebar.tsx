@@ -62,8 +62,7 @@ const menuItems: MenuItem[] = [
         label: 'โรคเรื้อรัง (NCD)',
         icon: <Heart size={20} />,
         children: [
-            { href: '/chronic/dm', label: 'เบาหวาน', icon: <Activity size={16} /> },
-            { href: '/chronic/ht', label: 'ความดันโลหิตสูง', icon: <TrendingUp size={16} /> },
+            { href: '/chronic/dm-ht', label: 'เบาหวาน/ความดัน', icon: <Activity size={16} /> },
         ],
     },
     { href: '/mcwh', label: 'อนามัยแม่และเด็ก', icon: <Baby size={20} /> },
