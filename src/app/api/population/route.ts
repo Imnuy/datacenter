@@ -1,13 +1,5 @@
 import { NextResponse } from 'next/server'
-import mysql from 'mysql2/promise'
-
-const dbConfig = {
-  host: process.env.DB_HOST ?? '127.0.0.1',
-  port: Number(process.env.DB_PORT ?? 3306),
-  user: process.env.DB_USER ?? 'root',
-  password: process.env.DB_PASS ?? '',
-  database: process.env.DB_NAME ?? 'datacenter',
-}
+import pool from '@/lib/db'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -17,7 +9,7 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') ?? 'all'   // all | age-group | house
 
   try {
-    const conn = await mysql.createConnection(dbConfig)
+    const conn = await pool.getConnection()
 
     let rows: unknown[] = []
 
@@ -115,7 +107,7 @@ export async function GET(request: Request) {
       rows = r as unknown[]
     }
 
-    await conn.end()
+    conn.release()
     return NextResponse.json({ success: true, data: rows })
   } catch (err) {
     console.error(err)
