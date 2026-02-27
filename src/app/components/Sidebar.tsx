@@ -78,6 +78,7 @@ const menuItems: MenuItem[] = [
         ],
     },
     { href: '/finance', label: 'การจัดเก็บรายได้', icon: <Wallet size={20} /> },
+    { href: '/custom-report', label: 'CUSTOM-Report', icon: <FileText size={20} /> },
 ]
 
 export default function Sidebar({ activePath }: { activePath: string }) {

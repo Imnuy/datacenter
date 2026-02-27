@@ -26,6 +26,7 @@ const MENU_LABELS: Record<string, string> = {
     '/report': 'รายงาน',
     '/report/monthly': 'รายงานรายเดือน',
     '/report/annual': 'รายงานประจำปี',
+    '/custom-report': 'CUSTOM-Report',
     '/settings': 'ตั้งค่าระบบ',
 }
 
