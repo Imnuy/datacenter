@@ -101,7 +101,7 @@ export default function OPDMonthlyReportPage() {
                             onChange={e => setSelectedYear(e.target.value)}
                             style={{ padding: '4px', border: 'none', background: 'transparent', outline: 'none', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
                         >
-                            {Array.from({ length: 11 }, (_, i) => 2569 - i).map(year => (
+                            {Array.from({ length: 15 }, (_, i) => 2569 - i).map(year => (
                                 <option key={year} value={year.toString()}>{year}</option>
                             ))}
                         </select>

@@ -223,7 +223,7 @@ export default function Sidebar({ activePath }: { activePath: string }) {
 
                                 {/* Sub items */}
                                 {!collapsed && item.children && isExpanded && (
-                                    <div style={{ paddingLeft: '8px', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                    <div style={{ paddingLeft: '24px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                         {item.children.map(child => {
                                             const ca = activePath === child.href
                                             return (
@@ -231,13 +231,12 @@ export default function Sidebar({ activePath }: { activePath: string }) {
                                                     key={child.href}
                                                     href={child.href}
                                                     style={{
-                                                        width: '100%', display: 'flex', alignItems: 'center', gap: '7px',
-                                                        padding: '7px 11px 7px 12px', textDecoration: 'none',
-                                                        borderRadius: '6px', cursor: 'pointer',
+                                                        width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                                                        padding: '8px 12px', textDecoration: 'none',
+                                                        borderRadius: '8px', cursor: 'pointer',
                                                         background: ca ? 'var(--accent-light)' : 'transparent',
                                                         color: ca ? 'var(--accent)' : 'var(--text-muted)',
-                                                        borderLeft: `2px solid ${ca ? 'var(--accent)' : 'var(--border)'}`,
-                                                        transition: 'all 0.18s', fontWeight: ca ? 600 : 400,
+                                                        transition: 'all 0.18s', fontWeight: ca ? 500 : 400,
                                                     }}
                                                     onMouseEnter={e => {
                                                         if (!ca) {

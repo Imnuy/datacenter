@@ -7,3 +7,8 @@ pm2 stop f43
 pm2 start f43
 pm2 save
 เพิ่มเมนู /อัพโหลด ให้ user สามารถอัพโหลดไฟล์ด้วย .zip เท่านั้น แล้วเก็บไฟล์ไว้ที่ upload เท่านั้น
+
+
+กรณ๊รัน 3000 ไม่ได้ให้
+cd datacenter   
+bun dev

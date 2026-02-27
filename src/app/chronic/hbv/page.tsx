@@ -135,61 +135,32 @@ export default function HBVNoVaccinePage() {
 
     return (
         <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '40px' }}>
-            {/* Header section */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Syringe color="#f59e0b" size={28} /> ประชากรทีั่ยังไม่ได้รับวัคซีน HBV (ปีงบ 69)
-                    </h1>
-                    <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        เป้าหมายประชากร (Type 1, 3) ที่ยังไม่มีประวัติฉีดวัคซีน HBV ตั้งแต่ 1 ต.ค. 2568
-                    </p>
+            {/* Top Controls */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                {/* Dropdown เลือกปีงบประมาณ */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-card)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <Calendar size={18} color="var(--text-muted)" />
+                    <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>ปีงบฯ</span>
+                    <select
+                        value={selectedYear}
+                        onChange={e => setSelectedYear(e.target.value)}
+                        style={{ padding: '4px', border: 'none', background: 'transparent', outline: 'none', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
+                    >
+                        {Array.from({ length: 15 }, (_, i) => 2569 - i).map(year => (
+                            <option key={year} value={year.toString()}>{year}</option>
+                        ))}
+                    </select>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <div style={{ position: 'relative' }}>
-                        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                        <input
-                            type="text"
-                            placeholder="ค้นหาชื่อหน่วยบริการ..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{
-                                padding: '8px 12px 8px 36px',
-                                borderRadius: '8px',
-                                border: '1px solid var(--border)',
-                                background: 'var(--bg-card)',
-                                fontSize: '14px',
-                                minWidth: '240px',
-                                outline: 'none'
-                            }}
-                        />
-                    </div>
 
-                    {/* Dropdown เลือกปีงบประมาณ สำหรับตารางรายเดือน */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-card)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                        <Calendar size={18} color="var(--text-muted)" />
-                        <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>ปีงบฯ</span>
-                        <select
-                            value={selectedYear}
-                            onChange={e => setSelectedYear(e.target.value)}
-                            style={{ padding: '4px', border: 'none', background: 'transparent', outline: 'none', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
-                        >
-                            {Array.from({ length: 11 }, (_, i) => 2569 - i).map(year => (
-                                <option key={year} value={year.toString()}>{year}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <button onClick={() => { fetchData(); fetchMonthlyData(); }} disabled={loading || loadingMonthly} style={{
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '8px 16px', borderRadius: '8px',
-                        background: 'var(--accent)', color: 'white', border: 'none',
-                        cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px'
-                    }}>
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                        รีเฟรช
-                    </button>
-                </div>
+                <button onClick={() => { fetchData(); fetchMonthlyData(); }} disabled={loading || loadingMonthly} style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '8px 16px', borderRadius: '8px',
+                    background: 'var(--accent)', color: 'white', border: 'none',
+                    cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px'
+                }}>
+                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                    รีเฟรช
+                </button>
             </div>
 
             {error && (
@@ -268,6 +239,39 @@ export default function HBVNoVaccinePage() {
                             </tfoot>
                         )}
                     </table>
+                </div>
+            </div>
+
+            {/* Title Section for Target Population */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                    <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Syringe color="#f59e0b" size={28} /> ประชากรที่ยังไม่ได้รับวัคซีน HBV (ปีงบ 69)
+                    </h1>
+                    <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        เป้าหมายประชากร (Type 1, 3) ที่ยังไม่มีประวัติฉีดวัคซีน HBV ตั้งแต่ 1 ต.ค. 2568
+                    </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ position: 'relative' }}>
+                        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                        <input
+                            type="text"
+                            placeholder="ค้นหาชื่อหน่วยบริการ..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                                padding: '8px 12px 8px 36px',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--bg-card)',
+                                fontSize: '14px',
+                                minWidth: '240px',
+                                outline: 'none'
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
 
