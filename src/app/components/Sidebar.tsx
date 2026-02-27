@@ -35,7 +35,6 @@ const menuItems: MenuItem[] = [
         children: [
             { href: '/population', label: 'ประชากรทั้งหมด', icon: <Users size={16} /> },
             { href: '/population/house', label: 'หลังคาเรือน', icon: <Map size={16} /> },
-            { href: '/population/age', label: 'แยกตามช่วงอายุ', icon: <BarChart3 size={16} /> },
         ],
     },
     {
@@ -66,7 +65,16 @@ const menuItems: MenuItem[] = [
         ],
     },
     { href: '/mcwh', label: 'อนามัยแม่และเด็ก', icon: <Baby size={20} /> },
-    { href: '/epi', label: 'สร้างเสริมภูมิคุ้มกัน', icon: <Syringe size={20} /> },
+    {
+        href: '/epi',
+        label: 'สร้างเสริมภูมิคุ้มกัน',
+        icon: <Syringe size={20} />,
+        children: [
+            { href: '/epi', label: 'ภาพรวมงาน EPI', icon: <Syringe size={16} /> },
+            { href: '/chronic/hbv', label: 'ไวรัสตับอักเสบบี (HBV)', icon: <TrendingUp size={16} /> },
+            { href: '/chronic/hcv', label: 'ไวรัสตับอักเสบซี (HCV)', icon: <TrendingUp size={16} /> },
+        ],
+    },
     { href: '/lab', label: 'ห้องปฏิบัติการ (LAB)', icon: <FlaskConical size={20} /> },
     {
         href: '/report',
@@ -119,7 +127,7 @@ export default function Sidebar({ activePath }: { activePath: string }) {
                 {!collapsed && (
                     <div>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent)', lineHeight: 1.2 }}>
-                            43 แฟ้ม
+                            อ.วัดโบสถ์
                         </div>
                         <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '1px' }}>
                             Health Data Center
