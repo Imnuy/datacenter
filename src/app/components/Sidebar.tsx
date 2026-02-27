@@ -85,7 +85,7 @@ export default function Sidebar({ activePath }: { activePath: string }) {
     const [collapsed, setCollapsed] = useState(false)
     // Auto-expand the group that is currently active based on path
     const currentGroup = menuItems.find(m => m.children && activePath.startsWith(m.href))?.href
-    const [expandedGroups, setExpandedGroups] = useState<string[]>(currentGroup ? [currentGroup] : ['/population'])
+    const [expandedGroups, setExpandedGroups] = useState<string[]>(currentGroup ? [currentGroup] : [])
 
     const toggleGroup = (href: string) =>
         setExpandedGroups(prev =>
