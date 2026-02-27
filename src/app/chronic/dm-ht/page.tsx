@@ -9,8 +9,11 @@ import {
   Search,
   Activity,
   UserCheck,
-  Stethoscope
+  Stethoscope,
+  Download
 } from 'lucide-react'
+import * as XLSX from 'xlsx'
+import Swal from 'sweetalert2'
 import {
   BarChart,
   Bar,
@@ -54,6 +57,65 @@ export default function ChronicDMPage() {
       setError(e.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCellClick = async (hospcode: string, filter: string, count: number) => {
+    if (count === 0) return
+
+    const { value: pass } = await Swal.fire({
+      title: 'ดาวน์โหลดข้อมูลผู้ป่วย NCDs',
+      text: 'กรุณาระบุรหัสผ่านหน่วยบริการ',
+      input: 'password',
+      inputPlaceholder: 'รหัสผ่าน',
+      showCancelButton: true,
+      confirmButtonText: 'ตกลง',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: 'var(--accent)',
+    })
+
+    if (!pass) return
+
+    try {
+      const res = await fetch(`/api/chronic/export?type=dm-ht&hospcode=${hospcode}&filter=${filter}&pass=${pass}`)
+      const json = await res.json()
+      if (!json.success) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ข้อผิดพลาด',
+          text: json.error || 'ไม่สามารถดาวน์โหลดได้ (รหัสผ่านอาจจะผิด)',
+          confirmButtonColor: 'var(--accent)'
+        })
+        return
+      }
+
+      if (json.data.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'ไม่พบข้อมูล',
+          text: 'ไม่พบข้อมูลตามเงื่อนไขที่เลือก',
+          confirmButtonColor: 'var(--accent)'
+        })
+        return
+      }
+
+      const ws = XLSX.utils.json_to_sheet(json.data)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, "Chronic_Data")
+
+      let suffix = "ALL"
+      if (filter === 'dm_only') suffix = "DM"
+      if (filter === 'ht_only') suffix = "HT"
+      if (filter === 'both') suffix = "DM_HT"
+
+      XLSX.writeFile(wb, `CHRONIC_${hospcode}_${suffix}.xlsx`)
+    } catch (e: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์',
+        confirmButtonColor: 'var(--accent)'
+      })
     }
   }
 
@@ -230,7 +292,10 @@ export default function ChronicDMPage() {
         <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
           <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <TableIcon size={20} color="var(--accent)" />
-            <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>ข้อมูลตารางแยกราย รพ.สต.</h2>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              ข้อมูลตารางแยกราย รพ.สต.
+              <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--text-muted)', marginLeft: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}><Download size={14} /> (สามารถคลิกตัวเลขรายเดือนเพื่อโหลด Excel)</span>
+            </h2>
           </div>
 
           <div style={{ overflowX: 'auto' }}>
@@ -262,10 +327,10 @@ export default function ChronicDMPage() {
                     }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.03)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)'}>
                       <td style={{ padding: '14px 24px', fontSize: '14px', color: 'var(--text-muted)' }}>{item.hospcode}</td>
                       <td style={{ padding: '14px 24px', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.hosname}</td>
-                      <td style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 600, color: '#16a34a' }}>{Number(item.dm_only).toLocaleString()}</td>
-                      <td style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 600, color: '#dc2626' }}>{Number(item.ht_only).toLocaleString()}</td>
-                      <td style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 600, color: '#ca8a04' }}>{Number(item.dm_ht_both).toLocaleString()}</td>
-                      <td style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 800, background: 'rgba(var(--accent-rgb), 0.03)', color: 'var(--accent)' }}>
+                      <td onClick={() => handleCellClick(item.hospcode, 'dm_only', Number(item.dm_only))} title={Number(item.dm_only) > 0 ? "คลิกเพื่อดาวน์โหลดรายชื่อ" : ""} style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 600, color: '#16a34a', cursor: Number(item.dm_only) > 0 ? 'pointer' : 'default', textDecoration: Number(item.dm_only) > 0 ? 'underline' : 'none' }}>{Number(item.dm_only).toLocaleString()}</td>
+                      <td onClick={() => handleCellClick(item.hospcode, 'ht_only', Number(item.ht_only))} title={Number(item.ht_only) > 0 ? "คลิกเพื่อดาวน์โหลดรายชื่อ" : ""} style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 600, color: '#dc2626', cursor: Number(item.ht_only) > 0 ? 'pointer' : 'default', textDecoration: Number(item.ht_only) > 0 ? 'underline' : 'none' }}>{Number(item.ht_only).toLocaleString()}</td>
+                      <td onClick={() => handleCellClick(item.hospcode, 'both', Number(item.dm_ht_both))} title={Number(item.dm_ht_both) > 0 ? "คลิกเพื่อดาวน์โหลดรายชื่อ" : ""} style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 600, color: '#ca8a04', cursor: Number(item.dm_ht_both) > 0 ? 'pointer' : 'default', textDecoration: Number(item.dm_ht_both) > 0 ? 'underline' : 'none' }}>{Number(item.dm_ht_both).toLocaleString()}</td>
+                      <td onClick={() => handleCellClick(item.hospcode, 'all', Number(item.total_patients))} title={Number(item.total_patients) > 0 ? "คลิกเพื่อดาวน์โหลดรายชื่อ" : ""} style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 800, background: 'rgba(var(--accent-rgb), 0.03)', color: 'var(--accent)', cursor: Number(item.total_patients) > 0 ? 'pointer' : 'default', textDecoration: Number(item.total_patients) > 0 ? 'underline' : 'none' }}>
                         {Number(item.total_patients).toLocaleString()}
                       </td>
                     </tr>

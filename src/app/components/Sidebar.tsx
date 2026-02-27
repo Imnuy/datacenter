@@ -43,6 +43,7 @@ const menuItems: MenuItem[] = [
         icon: <Hospital size={20} />,
         children: [
             { href: '/opd/visit', label: 'การให้บริการ', icon: <ClipboardList size={16} /> },
+            { href: '/opd/monthly', label: 'บริการรายเดือน', icon: <FileText size={16} /> },
             { href: '/opd/diag', label: 'การวินิจฉัยโรค', icon: <Stethoscope size={16} /> },
             { href: '/opd/drug', label: 'การจ่ายยา', icon: <Pill size={16} /> },
         ],
@@ -71,6 +72,7 @@ const menuItems: MenuItem[] = [
         icon: <Syringe size={20} />,
         children: [
             { href: '/epi', label: 'ภาพรวมงาน EPI', icon: <Syringe size={16} /> },
+            { href: '/epi/monthly', label: 'บริการวัคซีนรายเดือน', icon: <FileText size={16} /> },
             { href: '/chronic/hbv', label: 'ไวรัสตับอักเสบบี (HBV)', icon: <TrendingUp size={16} /> },
             { href: '/chronic/hcv', label: 'ไวรัสตับอักเสบซี (HCV)', icon: <TrendingUp size={16} /> },
         ],
@@ -81,7 +83,6 @@ const menuItems: MenuItem[] = [
         label: 'รายงาน',
         icon: <BarChart3 size={20} />,
         children: [
-            { href: '/report/monthly', label: 'รายงานรายเดือน', icon: <FileText size={16} /> },
             { href: '/report/annual', label: 'รายงานประจำปี', icon: <TrendingUp size={16} /> },
         ],
     },

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/leaflet": "^1.9.21",
+    "file-saver": "^2.0.5",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.575.0",
     "mysql2": "^3.18.1",
@@ -17,7 +18,9 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-leaflet": "^5.0.0",
-    "recharts": "^3.7.0"
+    "recharts": "^3.7.0",
+    "sweetalert2": "^11.26.20",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
