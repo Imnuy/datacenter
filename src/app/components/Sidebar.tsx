@@ -7,7 +7,7 @@ import {
     FlaskConical, Stethoscope, FileText, TrendingUp,
     Settings, ChevronLeft, ChevronRight, Database,
     Heart, Baby, Pill, Syringe, ClipboardList,
-    Map, BarChart3,
+    Map, BarChart3, Wallet
 } from 'lucide-react'
 
 export interface MenuItem {
@@ -77,16 +77,7 @@ const menuItems: MenuItem[] = [
             { href: '/chronic/hcv', label: 'ไวรัสตับอักเสบซี (HCV)', icon: <TrendingUp size={16} /> },
         ],
     },
-    { href: '/lab', label: 'ห้องปฏิบัติการ (LAB)', icon: <FlaskConical size={20} /> },
-    {
-        href: '/report',
-        label: 'รายงาน',
-        icon: <BarChart3 size={20} />,
-        children: [
-            { href: '/report/annual', label: 'รายงานประจำปี', icon: <TrendingUp size={16} /> },
-        ],
-    },
-    { href: '/settings', label: 'ตั้งค่าระบบ', icon: <Settings size={20} /> },
+    { href: '/finance', label: 'การจัดเก็บรายได้', icon: <Wallet size={20} /> },
 ]
 
 export default function Sidebar({ activePath }: { activePath: string }) {
@@ -112,7 +103,7 @@ export default function Sidebar({ activePath }: { activePath: string }) {
             boxShadow: 'var(--shadow-sm)',
         }}>
             {/* Logo Header */}
-            <div style={{
+            < div style={{
                 padding: '18px 16px', borderBottom: '1px solid var(--border)',
                 display: 'flex', alignItems: 'center', gap: '11px', minHeight: '68px',
                 background: 'linear-gradient(135deg, #e8f5e9, #f1f8e9)',
@@ -125,155 +116,159 @@ export default function Sidebar({ activePath }: { activePath: string }) {
                 }}>
                     <Database size={19} color="white" />
                 </div>
-                {!collapsed && (
-                    <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent)', lineHeight: 1.2 }}>
-                            อ.วัดโบสถ์
+                {
+                    !collapsed && (
+                        <div>
+                            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent)', lineHeight: 1.2 }}>
+                                อ.วัดโบสถ์
+                            </div>
+                            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '1px' }}>
+                                Health Data Center
+                            </div>
                         </div>
-                        <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '1px' }}>
-                            Health Data Center
-                        </div>
-                    </div>
-                )}
-            </div>
+                    )
+                }
+            </div >
 
             {/* Nav */}
-            <nav style={{
+            < nav style={{
                 flex: 1, overflowY: 'auto', overflowX: 'hidden',
                 padding: '10px 7px', display: 'flex', flexDirection: 'column', gap: '1px',
             }}>
-                {menuItems.map(item => {
-                    // Parent active logic
-                    const isExact = activePath === item.href
-                    const isChildActive = item.children?.some(c => activePath === c.href)
-                    const isActive = isExact || isChildActive
-                    const isExpanded = expandedGroups.includes(item.href)
+                {
+                    menuItems.map(item => {
+                        // Parent active logic
+                        const isExact = activePath === item.href
+                        const isChildActive = item.children?.some(c => activePath === c.href)
+                        const isActive = isExact || isChildActive
+                        const isExpanded = expandedGroups.includes(item.href)
 
-                    return (
-                        <div key={item.href}>
-                            {item.children ? (
-                                // Button for Parent (Toggle Expand)
-                                <button
-                                    onClick={() => collapsed ? undefined : toggleGroup(item.href)}
-                                    title={collapsed ? item.label : undefined}
-                                    style={{
-                                        width: '100%', display: 'flex', alignItems: 'center', gap: '9px',
-                                        padding: collapsed ? '10px' : '9px 11px',
-                                        borderRadius: '8px', border: 'none', cursor: 'pointer',
-                                        background: isActive ? 'var(--accent-mid)' : 'transparent',
-                                        color: isActive ? 'var(--accent)' : 'var(--text-muted)',
-                                        transition: 'all 0.18s', justifyContent: collapsed ? 'center' : 'flex-start',
-                                        textAlign: 'left', fontWeight: isActive ? 600 : 400,
-                                    }}
-                                    onMouseEnter={e => {
-                                        if (!isActive) {
-                                            e.currentTarget.style.background = 'var(--bg-hover)'
-                                            e.currentTarget.style.color = 'var(--accent)'
-                                        }
-                                    }}
-                                    onMouseLeave={e => {
-                                        if (!isActive) {
-                                            e.currentTarget.style.background = 'transparent'
-                                            e.currentTarget.style.color = 'var(--text-muted)'
-                                        }
-                                    }}
-                                >
-                                    <span style={{ flexShrink: 0, display: 'flex' }}>{item.icon}</span>
-                                    {!collapsed && (
-                                        <>
+                        return (
+                            <div key={item.href}>
+                                {item.children ? (
+                                    // Button for Parent (Toggle Expand)
+                                    <button
+                                        onClick={() => collapsed ? undefined : toggleGroup(item.href)}
+                                        title={collapsed ? item.label : undefined}
+                                        style={{
+                                            width: '100%', display: 'flex', alignItems: 'center', gap: '9px',
+                                            padding: collapsed ? '10px' : '9px 11px',
+                                            borderRadius: '8px', border: 'none', cursor: 'pointer',
+                                            background: isActive ? 'var(--accent-mid)' : 'transparent',
+                                            color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                                            transition: 'all 0.18s', justifyContent: collapsed ? 'center' : 'flex-start',
+                                            textAlign: 'left', fontWeight: isActive ? 600 : 400,
+                                        }}
+                                        onMouseEnter={e => {
+                                            if (!isActive) {
+                                                e.currentTarget.style.background = 'var(--bg-hover)'
+                                                e.currentTarget.style.color = 'var(--accent)'
+                                            }
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (!isActive) {
+                                                e.currentTarget.style.background = 'transparent'
+                                                e.currentTarget.style.color = 'var(--text-muted)'
+                                            }
+                                        }}
+                                    >
+                                        <span style={{ flexShrink: 0, display: 'flex' }}>{item.icon}</span>
+                                        {!collapsed && (
+                                            <>
+                                                <span style={{ fontSize: '13px', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {item.label}
+                                                </span>
+                                                <ChevronRight size={13} style={{
+                                                    transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)',
+                                                    transition: 'transform 0.2s', flexShrink: 0, opacity: 0.55,
+                                                }} />
+                                            </>
+                                        )}
+                                    </button>
+                                ) : (
+                                    // Link for Standalone
+                                    <Link
+                                        href={item.href}
+                                        title={collapsed ? item.label : undefined}
+                                        style={{
+                                            width: '100%', display: 'flex', alignItems: 'center', gap: '9px',
+                                            padding: collapsed ? '10px' : '9px 11px',
+                                            borderRadius: '8px', cursor: 'pointer', textDecoration: 'none',
+                                            background: isActive ? 'var(--accent-mid)' : 'transparent',
+                                            color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                                            transition: 'all 0.18s', justifyContent: collapsed ? 'center' : 'flex-start',
+                                            fontWeight: isActive ? 600 : 400,
+                                        }}
+                                        onMouseEnter={e => {
+                                            if (!isActive) {
+                                                e.currentTarget.style.background = 'var(--bg-hover)'
+                                                e.currentTarget.style.color = 'var(--accent)'
+                                            }
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (!isActive) {
+                                                e.currentTarget.style.background = 'transparent'
+                                                e.currentTarget.style.color = 'var(--text-muted)'
+                                            }
+                                        }}
+                                    >
+                                        <span style={{ flexShrink: 0, display: 'flex' }}>{item.icon}</span>
+                                        {!collapsed && (
                                             <span style={{ fontSize: '13px', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {item.label}
                                             </span>
-                                            <ChevronRight size={13} style={{
-                                                transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)',
-                                                transition: 'transform 0.2s', flexShrink: 0, opacity: 0.55,
-                                            }} />
-                                        </>
-                                    )}
-                                </button>
-                            ) : (
-                                // Link for Standalone
-                                <Link
-                                    href={item.href}
-                                    title={collapsed ? item.label : undefined}
-                                    style={{
-                                        width: '100%', display: 'flex', alignItems: 'center', gap: '9px',
-                                        padding: collapsed ? '10px' : '9px 11px',
-                                        borderRadius: '8px', cursor: 'pointer', textDecoration: 'none',
-                                        background: isActive ? 'var(--accent-mid)' : 'transparent',
-                                        color: isActive ? 'var(--accent)' : 'var(--text-muted)',
-                                        transition: 'all 0.18s', justifyContent: collapsed ? 'center' : 'flex-start',
-                                        fontWeight: isActive ? 600 : 400,
-                                    }}
-                                    onMouseEnter={e => {
-                                        if (!isActive) {
-                                            e.currentTarget.style.background = 'var(--bg-hover)'
-                                            e.currentTarget.style.color = 'var(--accent)'
-                                        }
-                                    }}
-                                    onMouseLeave={e => {
-                                        if (!isActive) {
-                                            e.currentTarget.style.background = 'transparent'
-                                            e.currentTarget.style.color = 'var(--text-muted)'
-                                        }
-                                    }}
-                                >
-                                    <span style={{ flexShrink: 0, display: 'flex' }}>{item.icon}</span>
-                                    {!collapsed && (
-                                        <span style={{ fontSize: '13px', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {item.label}
-                                        </span>
-                                    )}
-                                </Link>
-                            )}
+                                        )}
+                                    </Link>
+                                )}
 
-                            {/* Sub items */}
-                            {!collapsed && item.children && isExpanded && (
-                                <div style={{ paddingLeft: '8px', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                                    {item.children.map(child => {
-                                        const ca = activePath === child.href
-                                        return (
-                                            <Link
-                                                key={child.href}
-                                                href={child.href}
-                                                style={{
-                                                    width: '100%', display: 'flex', alignItems: 'center', gap: '7px',
-                                                    padding: '7px 11px 7px 12px', textDecoration: 'none',
-                                                    borderRadius: '6px', cursor: 'pointer',
-                                                    background: ca ? 'var(--accent-light)' : 'transparent',
-                                                    color: ca ? 'var(--accent)' : 'var(--text-muted)',
-                                                    borderLeft: `2px solid ${ca ? 'var(--accent)' : 'var(--border)'}`,
-                                                    transition: 'all 0.18s', fontWeight: ca ? 600 : 400,
-                                                }}
-                                                onMouseEnter={e => {
-                                                    if (!ca) {
-                                                        e.currentTarget.style.background = 'var(--bg-hover)'
-                                                        e.currentTarget.style.color = 'var(--accent)'
-                                                    }
-                                                }}
-                                                onMouseLeave={e => {
-                                                    if (!ca) {
-                                                        e.currentTarget.style.background = 'transparent'
-                                                        e.currentTarget.style.color = 'var(--text-muted)'
-                                                    }
-                                                }}
-                                            >
-                                                <span style={{ display: 'flex', flexShrink: 0 }}>{child.icon}</span>
-                                                <span style={{ fontSize: '12.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                    {child.label}
-                                                </span>
-                                            </Link>
-                                        )
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    )
-                })}
-            </nav>
+                                {/* Sub items */}
+                                {!collapsed && item.children && isExpanded && (
+                                    <div style={{ paddingLeft: '8px', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                        {item.children.map(child => {
+                                            const ca = activePath === child.href
+                                            return (
+                                                <Link
+                                                    key={child.href}
+                                                    href={child.href}
+                                                    style={{
+                                                        width: '100%', display: 'flex', alignItems: 'center', gap: '7px',
+                                                        padding: '7px 11px 7px 12px', textDecoration: 'none',
+                                                        borderRadius: '6px', cursor: 'pointer',
+                                                        background: ca ? 'var(--accent-light)' : 'transparent',
+                                                        color: ca ? 'var(--accent)' : 'var(--text-muted)',
+                                                        borderLeft: `2px solid ${ca ? 'var(--accent)' : 'var(--border)'}`,
+                                                        transition: 'all 0.18s', fontWeight: ca ? 600 : 400,
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        if (!ca) {
+                                                            e.currentTarget.style.background = 'var(--bg-hover)'
+                                                            e.currentTarget.style.color = 'var(--accent)'
+                                                        }
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        if (!ca) {
+                                                            e.currentTarget.style.background = 'transparent'
+                                                            e.currentTarget.style.color = 'var(--text-muted)'
+                                                        }
+                                                    }}
+                                                >
+                                                    <span style={{ display: 'flex', flexShrink: 0 }}>{child.icon}</span>
+                                                    <span style={{ fontSize: '12.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {child.label}
+                                                    </span>
+                                                </Link>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })
+                }
+            </nav >
 
             {/* Collapse toggle */}
-            <button
+            < button
                 onClick={() => setCollapsed(p => !p)}
                 style={{
                     position: 'absolute', top: '18px', right: '-12px',
@@ -292,7 +287,7 @@ export default function Sidebar({ activePath }: { activePath: string }) {
                 }}
             >
                 {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
-            </button>
-        </aside>
+            </button >
+        </aside >
     )
 }

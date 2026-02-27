@@ -9,8 +9,26 @@ import {
     Search,
     Activity,
     Syringe,
-    AlertCircle
+    AlertCircle,
+    Calendar,
+    Download
 } from 'lucide-react'
+
+// รายการเดือนในปีงบประมาณ (ต.ค. - ก.ย.)
+const MONTHS = [
+    { key: '10', name: 'ต.ค.' },
+    { key: '11', name: 'พ.ย.' },
+    { key: '12', name: 'ธ.ค.' },
+    { key: '01', name: 'ม.ค.' },
+    { key: '02', name: 'ก.พ.' },
+    { key: '03', name: 'มี.ค.' },
+    { key: '04', name: 'เม.ย.' },
+    { key: '05', name: 'พ.ค.' },
+    { key: '06', name: 'มิ.ย.' },
+    { key: '07', name: 'ก.ค.' },
+    { key: '08', name: 'ส.ค.' },
+    { key: '09', name: 'ก.ย.' },
+]
 import {
     BarChart,
     Bar,
@@ -36,6 +54,11 @@ export default function HBVNoVaccinePage() {
     const [error, setError] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
 
+    // States for monthly data
+    const [monthlyData, setMonthlyData] = useState<any[]>([])
+    const [loadingMonthly, setLoadingMonthly] = useState(true)
+    const [selectedYear, setSelectedYear] = useState('2569')
+
     const fetchData = async () => {
         setLoading(true)
         setError('')
@@ -51,9 +74,45 @@ export default function HBVNoVaccinePage() {
         }
     }
 
+    const fetchMonthlyData = async () => {
+        setLoadingMonthly(true)
+        try {
+            const res = await fetch(`/api/report/monthly?year=${selectedYear}&type=hbv`)
+            const json = await res.json()
+            if (json.success) {
+                const records = json.data
+                const grouped = records.reduce((acc: any, curr: any) => {
+                    const hc = curr.hospcode
+                    if (!acc[hc]) {
+                        acc[hc] = {
+                            hospcode: hc,
+                            hosname: curr.hosname || ('รหัส ' + hc),
+                            months: {},
+                            total: 0
+                        }
+                    }
+                    const mm = curr.yyyymm.substring(4, 6)
+                    acc[hc].months[mm] = Number(curr.total_count)
+                    acc[hc].total += Number(curr.total_count)
+                    return acc
+                }, {})
+                const tableData = Object.values(grouped).sort((a: any, b: any) => a.hospcode.localeCompare(b.hospcode))
+                setMonthlyData(tableData)
+            }
+        } catch (e: any) {
+            console.error(e)
+        } finally {
+            setLoadingMonthly(false)
+        }
+    }
+
     useEffect(() => {
         fetchData()
     }, [])
+
+    useEffect(() => {
+        fetchMonthlyData()
+    }, [selectedYear])
 
     const filteredData = data.filter(item =>
         item.hosname.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,6 +120,13 @@ export default function HBVNoVaccinePage() {
     )
 
     const totalCount = data.reduce((acc, curr) => acc + Number(curr.total_patients || 0), 0)
+
+    // Calculate monthly totals
+    const monthTotals = MONTHS.reduce((acc: any, m) => {
+        acc[m.key] = monthlyData.reduce((sum, row) => sum + (row.months[m.key] || 0), 0)
+        return acc
+    }, {})
+    const grandMonthlyTotal = monthlyData.reduce((sum, row) => sum + row.total, 0)
 
     const chartData = filteredData.map(item => ({
         name: item.hosname.replace('รพ.สต.', '').replace('โรงพยาบาลส่งเสริมสุขภาพตำบล', ''),
@@ -98,7 +164,23 @@ export default function HBVNoVaccinePage() {
                             }}
                         />
                     </div>
-                    <button onClick={fetchData} disabled={loading} style={{
+
+                    {/* Dropdown เลือกปีงบประมาณ สำหรับตารางรายเดือน */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-card)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                        <Calendar size={18} color="var(--text-muted)" />
+                        <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>ปีงบฯ</span>
+                        <select
+                            value={selectedYear}
+                            onChange={e => setSelectedYear(e.target.value)}
+                            style={{ padding: '4px', border: 'none', background: 'transparent', outline: 'none', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}
+                        >
+                            {Array.from({ length: 11 }, (_, i) => 2569 - i).map(year => (
+                                <option key={year} value={year.toString()}>{year}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button onClick={() => { fetchData(); fetchMonthlyData(); }} disabled={loading || loadingMonthly} style={{
                         display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '8px 16px', borderRadius: '8px',
                         background: 'var(--accent)', color: 'white', border: 'none',
@@ -115,6 +197,79 @@ export default function HBVNoVaccinePage() {
                     ❌ <strong>Error:</strong> {error}
                 </div>
             )}
+
+            {/* Monthly Table Section (Moved to Top) */}
+            <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+                <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <TableIcon size={20} color="var(--accent)" />
+                    <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        ข้อมูลการให้วัคซีน HBV แยก 12 เดือน (ปีงบฯ {selectedYear})
+                    </h2>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <thead style={{ background: 'var(--bg-primary)' }}>
+                            <tr>
+                                <th style={{ padding: '14px 20px', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>หน่วยบริการ</th>
+                                {MONTHS.map(m => (
+                                    <th key={m.key} style={{ padding: '14px 10px', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', textAlign: 'center' }}>{m.name}</th>
+                                ))}
+                                <th style={{ padding: '14px 20px', fontSize: '13px', fontWeight: 600, color: 'var(--accent)', borderBottom: '1px solid var(--border)', textAlign: 'center' }}>รวมทั้งสิ้น</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loadingMonthly ? (
+                                <tr><td colSpan={14} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>กำลังประมวลผลข้อมูล...</td></tr>
+                            ) : monthlyData.length === 0 ? (
+                                <tr><td colSpan={14} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>ไม่พบข้อมูลของการให้บริการในปีงบประมาณ {selectedYear}</td></tr>
+                            ) : monthlyData.map((row, i) => (
+                                <tr key={row.hospcode} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)' }}>
+                                    <td style={{ padding: '12px 20px', fontSize: '14px', fontWeight: 500, borderRight: '1px solid var(--border)' }}>
+                                        {row.hosname} <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '4px' }}>({row.hospcode})</span>
+                                    </td>
+                                    {MONTHS.map(m => {
+                                        const val = row.months[m.key] || 0
+                                        const isEmpty = val === 0
+
+                                        return (
+                                            <td
+                                                key={m.key}
+                                                style={{
+                                                    padding: '12px 10px',
+                                                    fontSize: '13px',
+                                                    textAlign: 'center',
+                                                    color: isEmpty ? '#ef4444' : 'var(--text-primary)',
+                                                    fontWeight: isEmpty ? 400 : 500,
+                                                }}
+                                            >
+                                                {isEmpty ? '-' : val.toLocaleString()}
+                                            </td>
+                                        )
+                                    })}
+                                    <td style={{ padding: '12px 20px', fontSize: '14px', textAlign: 'center', fontWeight: 700, color: 'var(--accent)', borderLeft: '1px solid var(--border)' }}>
+                                        {row.total.toLocaleString()}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        {monthlyData.length > 0 && (
+                            <tfoot style={{ background: 'var(--bg-primary)', fontWeight: 700, borderTop: '2px solid var(--border)' }}>
+                                <tr>
+                                    <td style={{ padding: '14px 20px', textAlign: 'right', fontSize: '14px', borderRight: '1px solid var(--border)' }}>สะสมรายเดือน</td>
+                                    {MONTHS.map(m => (
+                                        <td key={m.key} style={{ padding: '14px 10px', textAlign: 'center', fontSize: '13px', color: 'var(--text-primary)' }}>
+                                            {monthTotals[m.key].toLocaleString()}
+                                        </td>
+                                    ))}
+                                    <td style={{ padding: '14px 20px', textAlign: 'center', fontSize: '16px', color: 'var(--accent)', borderLeft: '1px solid var(--border)', background: 'rgba(var(--accent-rgb), 0.05)' }}>
+                                        {grandMonthlyTotal.toLocaleString()}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        )}
+                    </table>
+                </div>
+            </div>
 
             {/* Summary Widget */}
             <div style={{ background: 'white', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', gap: '16px', maxWidth: '350px' }}>
@@ -147,44 +302,7 @@ export default function HBVNoVaccinePage() {
                 </div>
             </div>
 
-            {/* Table Section */}
-            <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
-                <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>ข้อมูลตารางแยกราย รพ.สต.</h2>
-                </div>
-                <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                        <thead style={{ background: 'var(--bg-primary)' }}>
-                            <tr>
-                                <th style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>รหัส</th>
-                                <th style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>หน่วยบริการ</th>
-                                <th style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', textAlign: 'center' }}>จำนวนที่ยังไม่ได้รับวัคซีน</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan={3} style={{ padding: '40px', textAlign: 'center' }}>กำลังโหลดข้อมูล...</td></tr>
-                            ) : filteredData.length === 0 ? (
-                                <tr><td colSpan={3} style={{ padding: '40px', textAlign: 'center' }}>ไม่พบข้อมูล</td></tr>
-                            ) : (
-                                filteredData.map((item, idx) => (
-                                    <tr key={item.hospcode} style={{ background: idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)' }}>
-                                        <td style={{ padding: '14px 24px', fontSize: '14px', color: 'var(--text-muted)' }}>{item.hospcode}</td>
-                                        <td style={{ padding: '14px 24px', fontSize: '14px', fontWeight: 500 }}>{item.hosname}</td>
-                                        <td style={{ padding: '14px 24px', fontSize: '14px', textAlign: 'center', fontWeight: 700, color: '#d97706' }}>{Number(item.total_patients).toLocaleString()}</td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                        <tfoot style={{ background: 'var(--bg-primary)', fontWeight: 700 }}>
-                            <tr>
-                                <td colSpan={2} style={{ padding: '16px 24px', textAlign: 'right' }}>รวมทั้งสิ้น</td>
-                                <td style={{ padding: '16px 24px', textAlign: 'center', fontSize: '18px', color: 'var(--accent)' }}>{totalCount.toLocaleString()}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
+
         </div>
     )
 }

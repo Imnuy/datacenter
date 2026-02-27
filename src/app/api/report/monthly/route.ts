@@ -33,6 +33,32 @@ export async function GET(request: Request) {
         GROUP BY h.hospcode, h.hosname, yyyymm
         ORDER BY h.hospcode, yyyymm
       `
+        } else if (type === 'hbv') {
+            sql = `
+        SELECT 
+          h.hospcode, 
+          h.hosname,
+          SUBSTRING(e.date_serv, 1, 6) as yyyymm, 
+          COUNT(*) as total_count 
+        FROM epi e 
+        LEFT JOIN c_hos h ON e.hospcode = h.hospcode
+        WHERE e.date_serv >= ? AND e.date_serv <= ? AND e.vaccinetype = '041'
+        GROUP BY h.hospcode, h.hosname, yyyymm
+        ORDER BY h.hospcode, yyyymm
+      `
+        } else if (type === 'hcv') {
+            sql = `
+        SELECT 
+          h.hospcode, 
+          h.hosname,
+          SUBSTRING(e.date_serv, 1, 6) as yyyymm, 
+          COUNT(*) as total_count 
+        FROM epi e 
+        LEFT JOIN c_hos h ON e.hospcode = h.hospcode
+        WHERE e.date_serv >= ? AND e.date_serv <= ? AND e.vaccinetype = '042'
+        GROUP BY h.hospcode, h.hosname, yyyymm
+        ORDER BY h.hospcode, yyyymm
+      `
         } else {
             sql = `
         SELECT 
