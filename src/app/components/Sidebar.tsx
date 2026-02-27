@@ -89,7 +89,7 @@ export default function Sidebar({ activePath }: { activePath: string }) {
 
     const toggleGroup = (href: string) =>
         setExpandedGroups(prev =>
-            prev.includes(href) ? prev.filter(g => g !== href) : [...prev, href]
+            prev.includes(href) ? [] : [href]
         )
 
     return (
