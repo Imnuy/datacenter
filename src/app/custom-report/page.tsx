@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { FileText, Plus, Table as TableIcon, Eye, X, Save, Search } from 'lucide-react'
+import { FileText, Plus, Table as TableIcon, Eye, X, Save, Search as SearchIcon } from 'lucide-react'
 import Swal from 'sweetalert2'
 
 type CustomReportRow = {
@@ -250,7 +250,7 @@ export default function CustomReportPage() {
                     <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>รายงาน</h2>
                     <div style={{ flex: 1 }} />
                     <div style={{ position: 'relative' }}>
-                        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                        <SearchIcon size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                         <input
                             type="text"
                             placeholder="ค้นหาชื่อรายงาน..."
@@ -364,7 +364,7 @@ export default function CustomReportPage() {
                             </div>
                         </div>
 
-                        <div style={{ padding: '16px', overflow: 'auto' }}>
+                        <div style={{ padding: '16px', overflowY: 'auto' }}>
                             {runError && (
                                 <div style={{ padding: '14px', borderRadius: '12px', background: '#fff1f2', border: '1px solid #fda4af', color: '#e11d48', marginBottom: '12px' }}>
                                     <strong>Error:</strong> {runError}
@@ -380,8 +380,8 @@ export default function CustomReportPage() {
                             )}
 
                             {!running && runColumns.length > 0 && (
-                                <div style={{ overflowX: 'auto' }}>
-                                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <div style={{ overflowX: 'auto', marginBottom: '8px' }}>
+                                    <table style={{ minWidth: '100%', borderCollapse: 'collapse' }}>
                                         <thead>
                                             <tr>
                                                 {runColumns.map(c => (
@@ -404,7 +404,7 @@ export default function CustomReportPage() {
                                             ) : runData.map((r, i) => (
                                                 <tr key={i} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)' }}>
                                                     {runColumns.map(col => (
-                                                        <td key={col} style={{ padding: '10px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: '13px', color: 'var(--text-primary)' }}>
+                                                        <td key={col} style={{ padding: '10px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                                                             {r?.[col] === null || r?.[col] === undefined ? '' : String(r[col])}
                                                         </td>
                                                     ))}
