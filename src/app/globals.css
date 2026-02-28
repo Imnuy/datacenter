@@ -18,6 +18,10 @@
   --accent-light: rgba(46, 125, 50, 0.10);
   --accent-mid: rgba(46, 125, 50, 0.18);
 
+  --action-primary: #1f3d7a;
+  --action-secondary: #3f7bdc;
+  --action-highlight: rgba(31, 61, 122, 0.16);
+
   --success: #43a047;
   --warning: #f9a825;
   --danger: #e53935;
