@@ -218,19 +218,6 @@ export default function UploadPage() {
                     <UploadCard key={config.key} config={config} />
                 ))}
             </div>
-
-            <section style={{
-                padding: '18px',
-                border: '1px solid var(--border)',
-                borderRadius: '12px',
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-secondary)',
-                fontSize: '13px',
-                lineHeight: 1.7,
-            }}>
-                <strong style={{ color: 'var(--text-primary)' }}>หมายเหตุ:</strong> ฟังก์ชันอัปโหลดนี้เป็นการจำลอง UI เท่านั้น
-                — โปรดเชื่อมต่อ API อัปโหลดจริงก่อนใช้งานในระบบ Production
-            </section>
         </div>
     )
 }
