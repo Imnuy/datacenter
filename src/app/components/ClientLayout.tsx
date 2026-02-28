@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 
@@ -55,22 +55,42 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                         </span>
                     </div>
                     <div style={{ flex: 1 }} />
-                    <div style={{
-                        display: 'flex', alignItems: 'center', gap: '7px',
-                        padding: '5px 11px',
-                        background: 'var(--accent-light)',
-                        borderRadius: '7px',
-                        border: '1px solid var(--border)',
-                    }}>
-                        <div style={{
-                            width: '7px', height: '7px', borderRadius: '50%',
-                            background: 'var(--success)',
-                            animation: 'pulse-dot 2s infinite',
-                        }} />
-                        <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 500 }}>
-                            Connected · datacenter
+                    <Link
+                        href="/upload"
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '8px 16px',
+                            background: '#ffffff',
+                            color: 'var(--accent)',
+                            borderRadius: '8px',
+                            border: '1.5px solid var(--accent)',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            textDecoration: 'none',
+                            boxShadow: '0 8px 18px rgba(46, 125, 50, 0.12)',
+                            transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
+                        }}
+                        onMouseEnter={(event) => {
+                            event.currentTarget.style.transform = 'translateY(-1px)'
+                            event.currentTarget.style.boxShadow = '0 12px 24px rgba(46, 125, 50, 0.2)'
+                            event.currentTarget.style.backgroundColor = 'var(--accent-light)'
+                        }}
+                        onMouseLeave={(event) => {
+                            event.currentTarget.style.transform = 'none'
+                            event.currentTarget.style.boxShadow = '0 8px 18px rgba(46, 125, 50, 0.12)'
+                            event.currentTarget.style.backgroundColor = '#ffffff'
+                        }}
+                    >
+                        <span style={{
+                            display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
+                            width: '20px', height: '20px', borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.2)',
+                            fontSize: '12px', fontWeight: 700,
+                        }}>
+                            ↑
                         </span>
-                    </div>
+                        <span>อัปโหลดแฟ้ม</span>
+                    </Link>
                 </header>
 
                 {/* Content */}
