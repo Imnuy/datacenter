@@ -251,7 +251,7 @@ export default function ReimbursementClient({ data }: { data: PageData }) {
                 <div style={{ padding: '18px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div>
                         <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--text-primary)' }}>รายการโอนเงิน</h2>
-                        <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                        <p style={{ margin: '8px 0 0', fontSize: '13px', fontWeight: 700, color: '#ffffff', background: '#15803d', display: 'inline-flex', alignItems: 'center', padding: '6px 12px', borderRadius: 999, letterSpacing: 0.1 }}>
                             {filteredDetails.length.toLocaleString()} รายการ — ยอดรวม ฿{currency(f3Total)}
                         </p>
                     </div>
