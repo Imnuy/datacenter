@@ -77,7 +77,7 @@ const menuItems: MenuItem[] = [
             { href: '/chronic/hcv', label: 'ไวรัสตับอักเสบซี (HCV)', icon: <TrendingUp size={16} /> },
         ],
     },
-    { href: '/finance', label: 'การจัดเก็บรายได้', icon: <Wallet size={20} /> },
+    { href: '/reimbursement', label: 'การจัดเก็บรายได้', icon: <Wallet size={20} /> },
     { href: '/custom-report', label: 'CUSTOM-Report', icon: <FileText size={20} /> },
 ]
 
