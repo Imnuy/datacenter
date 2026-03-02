@@ -93,7 +93,7 @@ export async function GET(request: Request) {
       const [r] = await conn.execute(sql)
       rows = r as any[]
     } else if (type === 'hbv-no-vaccine') {
-      // ผู้ที่ยังไม่ได้รับวัคซีน HBV (041) ในปีงบ 69 (เริ่ม 2025-10-01)
+      // ผู้ที่ได้รับผลตรวจ HBsAg เป็นลบ และยังได้รับวัคซีน HBV ไม่ครบ 3 เข็ม (ข้อมูลปีงบ 69)
       const sql = `
         SELECT 
           h.hospcode,
@@ -103,12 +103,21 @@ export async function GET(request: Request) {
         LEFT JOIN c_hos h ON p.hospcode = h.hospcode
         WHERE p.typearea IN ('1', '3')
           AND (p.discharge = '9' OR p.discharge IS NULL OR p.discharge = '')
+          -- 1. ต้องมีประวัติการตรวจ HBsAg (0746299) เป็น Negative ในปีงบ 69
+          AND p.pid IN (
+            SELECT pid 
+            FROM labfu 
+            WHERE labtest = '0746299' 
+              AND labresult LIKE 'Negative%'
+              AND date_serv >= '20251001'
+          )
+          -- 2. ต้องยังได้รับวัคซีนไม่ครบ 3 เข็ม (ทั้งจากประวัติเดิมและเข็มใหม่)
           AND p.pid NOT IN (
             SELECT pid 
             FROM epi 
-            WHERE hospcode = p.hospcode 
-              AND vaccinetype = '041' 
-              AND date_serv >= '2025-10-01'
+            WHERE vaccinetype IN ('041', '042', '043', 'D21', 'D22', 'D23', 'D51', 'D52', 'D53', 'H31', 'H32', 'H33')
+            GROUP BY pid 
+            HAVING COUNT(*) >= 3
           )
         GROUP BY h.hospcode, h.hosname
         ORDER BY h.hospcode
@@ -116,6 +125,7 @@ export async function GET(request: Request) {
       const [r] = await conn.execute(sql)
       rows = r as any[]
     } else if (type === 'hcv-no-vaccine') {
+      // ผู้ที่ยังไม่เคยได้รับการตรวจคัดกรอง Anti-HCV (0741699) เลยแม้แต่ครั้งเดียวในชีวิต
       const sql = `
         SELECT 
           h.hospcode,
@@ -127,10 +137,8 @@ export async function GET(request: Request) {
           AND (p.discharge = '9' OR p.discharge IS NULL OR p.discharge = '')
           AND p.pid NOT IN (
             SELECT pid 
-            FROM epi 
-            WHERE hospcode = p.hospcode 
-              AND vaccinetype = 'HCV' 
-              AND date_serv >= '2025-10-01'
+            FROM labfu 
+            WHERE labtest = '0741699'
           )
         GROUP BY h.hospcode, h.hosname
         ORDER BY h.hospcode

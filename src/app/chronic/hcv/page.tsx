@@ -172,9 +172,9 @@ export default function HCVNoVaccinePage() {
             {/* Monthly Table Section */}
             <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
                 <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <TableIcon size={20} color="var(--accent)" />
+                    <Search size={20} color="var(--accent)" />
                     <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        ข้อมูลการให้วัคซีน HCV แยก 12 เดือน (ปีงบฯ {selectedYear})
+                        ข้อมูลการตรวจคัดกรอง Anti-HCV แยก 12 เดือน (ปีงบฯ {selectedYear})
                     </h2>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
@@ -246,10 +246,10 @@ export default function HCVNoVaccinePage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                     <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Syringe color="#ec4899" size={28} /> ประชากรที่ยังไม่ได้รับวัคซีน HCV (ปีงบ 69)
+                        <Search color="#ec4899" size={28} /> ประชากรที่ยังไม่เคยตรวจคัดกรอง Anti-HCV
                     </h1>
                     <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        เป้าหมายประชากร (Type 1, 3) ที่ยังไม่มีประวัติในแฟ้ม EPI (HCV) ตั้งแต่ 1 ต.ค. 2568
+                        เป้าหมายประชากร (Type 1, 3) ที่ยังไม่มีประวัติการตรวจ Anti-HCV เลยแม้แต่ครั้งเดียวในชีวิต
                     </p>
                 </div>
 
@@ -281,7 +281,7 @@ export default function HCVNoVaccinePage() {
                     <AlertCircle color="#be185d" size={24} />
                 </div>
                 <div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>จำนวนเป้าหมายที่ยังไม่ได้รับวัคซีน HCV</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>จำนวนเป้าหมายที่ยังไม่เคยตรวจ Anti-HCV</div>
                     <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)' }}>{totalCount.toLocaleString()} <span style={{ fontSize: '14px' }}>ราย</span></div>
                 </div>
             </div>
@@ -298,7 +298,7 @@ export default function HCVNoVaccinePage() {
                             <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={80} style={{ fontSize: '11px', fontWeight: 500 }} />
                             <YAxis style={{ fontSize: '12px' }} />
                             <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-md)' }} />
-                            <Bar dataKey="total" name="จำนวนที่ยังไม่ได้รับวัคซีน" fill="#ec4899" radius={[4, 4, 0, 0]}>
+                            <Bar dataKey="total" name="จำนวนที่ยังไม่เคยตรวจ" fill="#ec4899" radius={[4, 4, 0, 0]}>
                                 <LabelList dataKey="total" position="top" style={{ fontSize: '11px', fill: 'var(--text-muted)' }} />
                             </Bar>
                         </BarChart>

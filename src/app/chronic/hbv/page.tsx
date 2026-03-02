@@ -249,7 +249,7 @@ export default function HBVNoVaccinePage() {
                         <Syringe color="#f59e0b" size={28} /> ประชากรที่ยังไม่ได้รับวัคซีน HBV (ปีงบ 69)
                     </h1>
                     <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        เป้าหมายประชากร (Type 1, 3) ที่ยังไม่มีประวัติฉีดวัคซีน HBV ตั้งแต่ 1 ต.ค. 2568
+                        ประชากร (Type 1, 3) ที่มีผลตรวจ HBsAg เป็น Negative และยังได้รับวัคซีนไม่ครบ 3 เข็ม (คัดกรองตั้งแต่ 1 ต.ค. 2568)
                     </p>
                 </div>
 

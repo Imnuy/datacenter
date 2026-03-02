@@ -49,15 +49,6 @@ const menuItems: MenuItem[] = [
         ],
     },
     {
-        href: '/ipd',
-        label: 'บริการผู้ป่วยใน (IPD)',
-        icon: <Activity size={20} />,
-        children: [
-            { href: '/ipd/admit', label: 'การรับไว้รักษา', icon: <ClipboardList size={16} /> },
-            { href: '/ipd/diag', label: 'การวินิจฉัยโรค', icon: <Stethoscope size={16} /> },
-        ],
-    },
-    {
         href: '/chronic',
         label: 'โรคเรื้อรัง (NCD)',
         icon: <Heart size={20} />,
