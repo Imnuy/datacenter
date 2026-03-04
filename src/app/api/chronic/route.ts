@@ -93,7 +93,9 @@ export async function GET(request: Request) {
       const [r] = await conn.execute(sql)
       rows = r as any[]
     } else if (type === 'hbv-no-vaccine') {
-      // ผู้ที่ได้รับผลตรวจ HBsAg เป็นลบ และยังได้รับวัคซีน HBV ไม่ครบ 3 เข็ม (ข้อมูลปีงบ 69)
+      // ผู้ที่ควรได้รับวัคซีน HBV (ปีงบ 69)
+      // เงื่อนไข: HBsAg เป็น Negative (ไม่ติดเชื้อ) และ Anti-HBs < 10 (ไม่มีภูมิ)
+      // อนุโลม: เนื่องจากข้อมูล Anti-HBs (0741499) ในฐานข้อมูลยังไม่มี/ไม่ครบ จึงพิจารณาจาก HBsAg เป็นหลักไปก่อน
       const sql = `
         SELECT 
           h.hospcode,
@@ -103,15 +105,24 @@ export async function GET(request: Request) {
         LEFT JOIN c_hos h ON p.hospcode = h.hospcode
         WHERE p.typearea IN ('1', '3')
           AND (p.discharge = '9' OR p.discharge IS NULL OR p.discharge = '')
-          -- 1. ต้องมีประวัติการตรวจ HBsAg (0746299) เป็น Negative ในปีงบ 69
+          -- 1. ต้องมีประวัติการตรวจ HBsAg (0746299) เป็น Negative
           AND p.pid IN (
             SELECT pid 
             FROM labfu 
             WHERE labtest = '0746299' 
               AND labresult LIKE 'Negative%'
-              AND date_serv >= '20251001'
           )
-          -- 2. ต้องยังได้รับวัคซีนไม่ครบ 3 เข็ม (ทั้งจากประวัติเดิมและเข็มใหม่)
+          /* 
+          -- 2. ต้องมีประวัติการตรวจ Anti-HBs (0741499) เป็น Negative หรือ < 10 mIU/mL
+          -- ปิดไว้ก่อนเนื่องจาก query แล้วได้ 0 ตลอด (ไม่มีบันทึกรหัส 0741499 ใน 43 แฟ้ม)
+          AND p.pid IN (
+            SELECT pid
+            FROM labfu
+            WHERE labtest = '0741499'
+              AND (labresult LIKE 'Negative%' OR labresult < 10)
+          )
+          */
+          -- 3. ต้องยังได้รับวัคซีนไม่ครบ 3 เข็ม (ทั้งวัคซีนเดี่ยวและรวม)
           AND p.pid NOT IN (
             SELECT pid 
             FROM epi 
