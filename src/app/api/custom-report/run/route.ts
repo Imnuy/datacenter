@@ -29,6 +29,7 @@ export async function POST(request: Request) {
 
         const conn = await pool.getConnection()
         try {
+            await conn.execute("SET NAMES 'utf8mb4'")
             const [metaRows] = await conn.execute(
                 `SELECT id, report_name, sql_command, is_active, d_update FROM custom_report WHERE id = ? LIMIT 1`,
                 [id]
