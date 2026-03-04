@@ -72,21 +72,7 @@ export default function CustomReportPage() {
     const [newSqlCommand, setNewSqlCommand] = useState('')
     const [adminPass, setAdminPass] = useState('')
 
-    const fetchList = async () => {
-        setLoading(true); setError('')
-        try {
-            const res = await fetch('/api/custom-report/list')
-            const json = await res.json() as ListResponse
-            if (!json.success) throw new Error(json.error)
-            setRows((json.data ?? []) as CustomReportRow[])
-        } catch (e: unknown) {
-            setError(e instanceof Error ? e.message : String(e))
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const confirmOpenCreate = async () => {
+    const requestAdminPass = async (): Promise<string | null> => {
         const result = await Swal.fire({
             title: 'กรอกรหัสผ่าน Admin',
             input: 'password',
@@ -104,18 +90,34 @@ export default function CustomReportPage() {
                     Swal.showValidationMessage('กรุณากรอกรหัสผ่าน')
                     return false
                 }
-                if (String(value) !== 'admin112233') {
-                    Swal.showValidationMessage('รหัสผ่านไม่ถูกต้อง')
-                    return false
-                }
                 return String(value)
             },
         })
 
-        if (result.isConfirmed && String(result.value ?? '') === 'admin112233') {
-            setAdminPass(String(result.value ?? ''))
-            setCreateOpen(true)
+        if (!result.isConfirmed) return null
+        const pass = String(result.value ?? '').trim()
+        return pass || null
+    }
+
+    const fetchList = async () => {
+        setLoading(true); setError('')
+        try {
+            const res = await fetch('/api/custom-report/list')
+            const json = await res.json() as ListResponse
+            if (!json.success) throw new Error(json.error)
+            setRows((json.data ?? []) as CustomReportRow[])
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : String(e))
+        } finally {
+            setLoading(false)
         }
+    }
+
+    const confirmOpenCreate = async () => {
+        const pass = await requestAdminPass()
+        if (!pass) return
+        setAdminPass(pass)
+        setCreateOpen(true)
     }
 
     useEffect(() => { fetchList() }, [])
@@ -199,6 +201,13 @@ export default function CustomReportPage() {
     }
 
     const runReport = async (id: number, title: string) => {
+        const pass = adminPass.trim() || await requestAdminPass()
+        if (!pass) return
+
+        if (!adminPass.trim()) {
+            setAdminPass(pass)
+        }
+
         setOpen(true)
         setRunTitle(title)
         setRunError('')
@@ -212,7 +221,7 @@ export default function CustomReportPage() {
             const res = await fetch('/api/custom-report/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id }),
+                body: JSON.stringify({ id, pass }),
             })
             const json = await res.json() as RunResponse
             if (!json.success) throw new Error(json.error || 'Run failed')
@@ -223,6 +232,9 @@ export default function CustomReportPage() {
             setMaxRows(json.maxRows || 0)
         } catch (e: unknown) {
             setRunError(e instanceof Error ? e.message : String(e))
+            if ((e instanceof Error ? e.message : String(e)).toLowerCase().includes('unauthorized')) {
+                setAdminPass('')
+            }
         } finally {
             setRunning(false)
         }
