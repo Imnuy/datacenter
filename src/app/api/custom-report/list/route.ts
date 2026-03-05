@@ -5,7 +5,7 @@ export async function GET() {
     try {
         const conn = await pool.getConnection()
         const [rows] = await conn.execute(`
-            SELECT id, report_name, sql_command, is_active, d_update
+            SELECT id, report_name, sql_command, pass_key, is_active, d_update
             FROM custom_report
             ORDER BY id
         `)
