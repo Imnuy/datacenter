@@ -27,9 +27,6 @@ export async function POST(request: Request) {
         if (!Number.isFinite(id) || id <= 0) {
             return NextResponse.json({ success: false, error: 'Invalid id' }, { status: 400 })
         }
-        if (!pass_key) {
-            return NextResponse.json({ success: false, error: 'pass_key is required' }, { status: 400 })
-        }
 
         const conn = await pool.getConnection()
         try {
@@ -49,11 +46,15 @@ export async function POST(request: Request) {
             }
 
             const expectedPassKey = String(meta.pass_key ?? '').trim()
-            if (!expectedPassKey) {
-                return NextResponse.json({ success: false, error: 'Report pass_key is not configured' }, { status: 400 })
-            }
-            if (pass_key !== expectedPassKey) {
-                return NextResponse.json({ success: false, error: 'pass_key ไม่ถูกต้อง' }, { status: 401 })
+            
+            // If pass_key is configured, require it and validate
+            if (expectedPassKey) {
+                if (!pass_key) {
+                    return NextResponse.json({ success: false, error: 'pass_key is required' }, { status: 400 })
+                }
+                if (pass_key !== expectedPassKey) {
+                    return NextResponse.json({ success: false, error: 'pass_key ไม่ถูกต้อง' }, { status: 401 })
+                }
             }
 
             const sql = String(meta.sql_command || '')

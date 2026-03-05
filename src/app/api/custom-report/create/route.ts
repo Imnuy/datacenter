@@ -77,9 +77,6 @@ export async function POST(request: Request) {
         if (!sql_command) {
             return NextResponse.json({ success: false, error: 'sql_command is required' }, { status: 400 })
         }
-        if (!pass_key) {
-            return NextResponse.json({ success: false, error: 'pass_key is required' }, { status: 400 })
-        }
         if (!isSafeSelect(sql_command)) {
             return NextResponse.json({ success: false, error: 'Unsafe SQL blocked by policy' }, { status: 400 })
         }

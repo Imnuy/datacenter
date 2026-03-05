@@ -180,10 +180,6 @@ export default function CustomReportPage() {
             setCreateError('กรุณากรอก sql_command')
             return
         }
-        if (!pass_key) {
-            setCreateError('กรุณากรอก pass_key')
-            return
-        }
 
         setCreateSaving(true)
         setCreateError('')
@@ -206,31 +202,54 @@ export default function CustomReportPage() {
     }
 
     const runReport = async (id: number, title: string) => {
-        const result = await Swal.fire({
-            title: `กรอก pass_key เพื่อดูรายงาน`,
-            text: title,
-            input: 'password',
-            inputPlaceholder: 'pass_key',
-            inputAttributes: {
-                autocapitalize: 'off',
-                autocorrect: 'off',
-            },
-            showCancelButton: true,
-            confirmButtonText: 'เรียกดู',
-            cancelButtonText: 'ยกเลิก',
-            reverseButtons: true,
-            preConfirm: (value) => {
-                if (!String(value ?? '').trim()) {
-                    Swal.showValidationMessage('กรุณากรอก pass_key')
-                    return false
-                }
-                return String(value).trim()
-            },
+        // First check if pass_key is required
+        const checkRes = await fetch('/api/custom-report/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, pass_key: '' }),
         })
+        const checkJson = await checkRes.json() as RunResponse
+        
+        let pass_key = ''
+        
+        // If pass_key is required, prompt user
+        if (!checkJson.success && checkJson.error?.includes('pass_key is required')) {
+            const result = await Swal.fire({
+                title: `กรอก pass_key เพื่อดูรายงาน`,
+                text: title,
+                input: 'password',
+                inputPlaceholder: 'pass_key',
+                inputAttributes: {
+                    autocapitalize: 'off',
+                    autocorrect: 'off',
+                },
+                showCancelButton: true,
+                confirmButtonText: 'เรียกดู',
+                cancelButtonText: 'ยกเลิก',
+                reverseButtons: true,
+                preConfirm: (value) => {
+                    if (!String(value ?? '').trim()) {
+                        Swal.showValidationMessage('กรุณากรอก pass_key')
+                        return false
+                    }
+                    return String(value).trim()
+                },
+            })
 
-        if (!result.isConfirmed) return
-        const pass_key = String(result.value ?? '').trim()
-        if (!pass_key) return
+            if (!result.isConfirmed) return
+            pass_key = String(result.value ?? '').trim()
+            if (!pass_key) return
+        } else if (!checkJson.success) {
+            // Other error occurred
+            setOpen(true)
+            setRunTitle(title)
+            setRunError(checkJson.error || 'Unknown error')
+            setRunColumns([])
+            setRunData([])
+            setRunRowCount(0)
+            setMaxRows(0)
+            return
+        }
 
         setOpen(true)
         setRunTitle(title)
@@ -527,12 +546,12 @@ export default function CustomReportPage() {
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>pass_key *</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>pass_key (ไม่ระบุก็ได้)</div>
                                 <input
                                     type="password"
                                     value={newPassKey}
                                     onChange={(e) => setNewPassKey(e.target.value)}
-                                    placeholder="รหัสผ่านสำหรับเรียกดูรายงาน"
+                                    placeholder="รหัสผ่านสำหรับเรียกดูรายงาน (ถ้าต้องการควบคุมการเข้าถึง)"
                                     disabled={createSaving}
                                     style={{ padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', background: 'white', fontSize: '14px', outline: 'none' }}
                                 />
