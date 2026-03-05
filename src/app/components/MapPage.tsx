@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-import { Map as MapIcon, RefreshCw, Navigation } from 'lucide-react'
+import { Map as MapIcon, RefreshCw } from 'lucide-react'
 
 const { BaseLayer } = LayersControl
 
@@ -40,6 +40,74 @@ const getHospitalIcon = () => {
         iconAnchor: [16, 16],
         popupAnchor: [0, -16],
     })
+}
+
+// Component: คลิกหมุดเปิด Popup มีปุ่มซูม
+function ZoomableMarker({ hosp, icon }: { hosp: Hospital; icon: L.DivIcon | null }) {
+    const map = useMap()
+    return (
+        <Marker
+            position={[Number(hosp.latitude), Number(hosp.longitude)]}
+            {...(icon ? { icon } : {})}
+        >
+            <Popup>
+                <div style={{ minWidth: '160px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#1b5e20', marginBottom: '4px' }}>
+                        {hosp.hosname}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
+                        รหัส: <strong>{hosp.hospcode}</strong>
+                    </div>
+                    <button
+                        onClick={() => {
+                            map.flyTo([Number(hosp.latitude), Number(hosp.longitude)], 16, { duration: 1.2 })
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: '7px 0',
+                            background: '#2e7d32',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                        }}
+                    >
+                        🔍 ซูมไปที่นี่
+                    </button>
+                    <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${hosp.latitude},${hosp.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            marginTop: '6px',
+                            width: '100%',
+                            padding: '7px 0',
+                            background: '#1565c0',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        🧭 นำทาง Google Maps
+                    </a>
+                </div>
+            </Popup>
+        </Marker>
+    )
 }
 
 export default function MapPage() {
@@ -149,13 +217,13 @@ export default function MapPage() {
                             style={{ height: '100%', width: '100%', zIndex: 1 }}
                         >
                             <LayersControl position="topright">
-                                <BaseLayer checked name="แผนที่ปกติ (OpenStreetMap)">
+                                <BaseLayer name="แผนที่ปกติ (OpenStreetMap)">
                                     <TileLayer
                                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                     />
                                 </BaseLayer>
-                                <BaseLayer name="แผนที่ดาวเทียม (Google Hybrid)">
+                                <BaseLayer checked name="แผนที่ดาวเทียม (Google Hybrid)">
                                     <TileLayer
                                         attribution='&copy; Google'
                                         url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
@@ -169,41 +237,13 @@ export default function MapPage() {
                                 </BaseLayer>
                             </LayersControl>
 
-                            {hospitals.map(hosp => {
-                                const customIcon = getHospitalIcon()
-                                return (
-                                    <Marker
-                                        key={hosp.hospcode}
-                                        position={[Number(hosp.latitude), Number(hosp.longitude)]}
-                                        {...(customIcon ? { icon: customIcon } : {})}
-                                    >
-                                        <Popup>
-                                            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent)', marginBottom: '4px' }}>
-                                                {hosp.hosname}
-                                            </div>
-                                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                                <span>รหัส: <strong style={{ color: 'var(--text-primary)' }}>{hosp.hospcode}</strong></span>
-                                                <span>Lat: <strong style={{ color: 'var(--text-primary)' }}>{hosp.latitude}</strong></span>
-                                                <span>Lng: <strong style={{ color: 'var(--text-primary)' }}>{hosp.longitude}</strong></span>
-                                            </div>
-                                            <a
-                                                href={`https://www.google.com/maps/dir/?api=1&destination=${hosp.latitude},${hosp.longitude}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                style={{
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                                                    marginTop: '10px', padding: '6px 10px', background: 'var(--accent)',
-                                                    color: 'white', textDecoration: 'none', borderRadius: '4px',
-                                                    fontSize: '12px', fontWeight: 500
-                                                }}
-                                            >
-                                                <Navigation size={12} />
-                                                นำทางด้วย Google Maps
-                                            </a>
-                                        </Popup>
-                                    </Marker>
-                                )
-                            })}
+                            {hospitals.map(hosp => (
+                                <ZoomableMarker
+                                    key={hosp.hospcode}
+                                    hosp={hosp}
+                                    icon={getHospitalIcon()}
+                                />
+                            ))}
                         </MapContainer>
                     </div>
                 )}
