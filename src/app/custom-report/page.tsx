@@ -70,6 +70,7 @@ export default function CustomReportPage() {
     const [createError, setCreateError] = useState('')
     const [newReportName, setNewReportName] = useState('')
     const [newSqlCommand, setNewSqlCommand] = useState('')
+    const [newPassKey, setNewPassKey] = useState('')
     const [adminPass, setAdminPass] = useState('')
 
     const fetchList = async () => {
@@ -156,12 +157,14 @@ export default function CustomReportPage() {
         setCreateError('')
         setNewReportName('')
         setNewSqlCommand('')
+        setNewPassKey('')
         setAdminPass('')
     }
 
     const submitCreate = async () => {
         const report_name = newReportName.trim()
         const sql_command = newSqlCommand.trim()
+        const pass_key = newPassKey.trim()
         const pass = adminPass.trim()
 
         if (!pass) {
@@ -177,6 +180,10 @@ export default function CustomReportPage() {
             setCreateError('กรุณากรอก sql_command')
             return
         }
+        if (!pass_key) {
+            setCreateError('กรุณากรอก pass_key')
+            return
+        }
 
         setCreateSaving(true)
         setCreateError('')
@@ -184,7 +191,7 @@ export default function CustomReportPage() {
             const res = await fetch('/api/custom-report/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ report_name, sql_command, pass }),
+                body: JSON.stringify({ report_name, sql_command, pass_key, pass }),
             })
             const json = await res.json() as CreateResponse
             if (!json.success) throw new Error(json.error || 'Create failed')
@@ -199,6 +206,32 @@ export default function CustomReportPage() {
     }
 
     const runReport = async (id: number, title: string) => {
+        const result = await Swal.fire({
+            title: `กรอก pass_key เพื่อดูรายงาน`,
+            text: title,
+            input: 'password',
+            inputPlaceholder: 'pass_key',
+            inputAttributes: {
+                autocapitalize: 'off',
+                autocorrect: 'off',
+            },
+            showCancelButton: true,
+            confirmButtonText: 'เรียกดู',
+            cancelButtonText: 'ยกเลิก',
+            reverseButtons: true,
+            preConfirm: (value) => {
+                if (!String(value ?? '').trim()) {
+                    Swal.showValidationMessage('กรุณากรอก pass_key')
+                    return false
+                }
+                return String(value).trim()
+            },
+        })
+
+        if (!result.isConfirmed) return
+        const pass_key = String(result.value ?? '').trim()
+        if (!pass_key) return
+
         setOpen(true)
         setRunTitle(title)
         setRunError('')
@@ -212,7 +245,7 @@ export default function CustomReportPage() {
             const res = await fetch('/api/custom-report/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id }),
+                body: JSON.stringify({ id, pass_key }),
             })
             const json = await res.json() as RunResponse
             if (!json.success) throw new Error(json.error || 'Run failed')
@@ -488,6 +521,18 @@ export default function CustomReportPage() {
                                     value={newReportName}
                                     onChange={(e) => setNewReportName(e.target.value)}
                                     placeholder="ชื่อรายงาน"
+                                    disabled={createSaving}
+                                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', background: 'white', fontSize: '14px', outline: 'none' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>pass_key *</div>
+                                <input
+                                    type="password"
+                                    value={newPassKey}
+                                    onChange={(e) => setNewPassKey(e.target.value)}
+                                    placeholder="รหัสผ่านสำหรับเรียกดูรายงาน"
                                     disabled={createSaving}
                                     style={{ padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)', background: 'white', fontSize: '14px', outline: 'none' }}
                                 />

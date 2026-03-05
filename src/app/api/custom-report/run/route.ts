@@ -20,18 +20,22 @@ function isSafeSelect(sql: string): boolean {
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json().catch(() => null) as null | { id?: number }
+        const body = await request.json().catch(() => null) as null | { id?: number; pass_key?: string }
         const id = Number(body?.id)
+        const pass_key = String(body?.pass_key ?? '').trim()
 
         if (!Number.isFinite(id) || id <= 0) {
             return NextResponse.json({ success: false, error: 'Invalid id' }, { status: 400 })
+        }
+        if (!pass_key) {
+            return NextResponse.json({ success: false, error: 'pass_key is required' }, { status: 400 })
         }
 
         const conn = await pool.getConnection()
         try {
             await conn.execute("SET NAMES 'utf8mb4'")
             const [metaRows] = await conn.execute(
-                `SELECT id, report_name, sql_command, is_active, d_update FROM custom_report WHERE id = ? LIMIT 1`,
+                `SELECT id, report_name, sql_command, pass_key, is_active, d_update FROM custom_report WHERE id = ? LIMIT 1`,
                 [id]
             ) as any
 
@@ -42,6 +46,14 @@ export async function POST(request: Request) {
 
             if (String(meta.is_active || '').toLowerCase() !== 'y') {
                 return NextResponse.json({ success: false, error: 'Report is not active' }, { status: 400 })
+            }
+
+            const expectedPassKey = String(meta.pass_key ?? '').trim()
+            if (!expectedPassKey) {
+                return NextResponse.json({ success: false, error: 'Report pass_key is not configured' }, { status: 400 })
+            }
+            if (pass_key !== expectedPassKey) {
+                return NextResponse.json({ success: false, error: 'pass_key ไม่ถูกต้อง' }, { status: 401 })
             }
 
             const sql = String(meta.sql_command || '')
