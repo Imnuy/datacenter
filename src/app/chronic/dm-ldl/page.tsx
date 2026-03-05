@@ -225,7 +225,7 @@ export default function DmLdlPage() {
                                 <YAxis domain={[0, 100]} style={{ fontSize: '12px' }} />
                                 <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-md)', padding: '12px' }} />
                                 <Bar dataKey="percent" name="ร้อยละ (%)" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={32}>
-                                    <LabelList dataKey="percent" position="top" style={{ fontSize: '11px', fill: 'var(--text-muted)' }} formatter={(v: number) => v > 0 ?\`\${v}%\` : ''} />
+                                    <LabelList dataKey="percent" position="top" style={{ fontSize: '11px', fill: 'var(--text-muted)' }} formatter={(v: unknown) => Number(v) > 0 ? Number(v) + '%' : ''} />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
