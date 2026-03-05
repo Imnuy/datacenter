@@ -5,6 +5,7 @@ import type { ResultSetHeader } from 'mysql2/promise'
 type CreateBody = {
     report_name?: string
     sql_command?: string
+    pass_key?: string
     pass?: string
 }
 
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
         const body = await request.json().catch(() => null) as CreateBody | null
         const report_name = String(body?.report_name ?? '').trim()
         const sql_command = String(body?.sql_command ?? '').trim()
+        const pass_key = String(body?.pass_key ?? '').trim()
         const pass = String(body?.pass ?? '')
 
         if (!pass || pass !== ADMIN_PASS) {
@@ -75,6 +77,9 @@ export async function POST(request: Request) {
         if (!sql_command) {
             return NextResponse.json({ success: false, error: 'sql_command is required' }, { status: 400 })
         }
+        if (!pass_key) {
+            return NextResponse.json({ success: false, error: 'pass_key is required' }, { status: 400 })
+        }
         if (!isSafeSelect(sql_command)) {
             return NextResponse.json({ success: false, error: 'Unsafe SQL blocked by policy' }, { status: 400 })
         }
@@ -82,8 +87,8 @@ export async function POST(request: Request) {
         const conn = await pool.getConnection()
         try {
             const [result] = await conn.execute<ResultSetHeader>(
-                `INSERT INTO custom_report (report_name, sql_command, is_active, d_update) VALUES (?, ?, 'y', NOW())`,
-                [report_name, sql_command]
+                `INSERT INTO custom_report (report_name, sql_command, pass_key, is_active, d_update) VALUES (?, ?, ?, 'y', NOW())`,
+                [report_name, sql_command, pass_key]
             )
 
             const insertId = Number(result.insertId || 0)
