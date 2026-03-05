@@ -20,6 +20,7 @@ const MENU_LABELS: Record<string, string> = {
     '/ipd/diag': 'การวินิจฉัยโรค IPD',
     '/chronic': 'โรคเรื้อรัง (NCD)',
     '/chronic/dm-ht': 'เบาหวาน/ความดัน',
+    '/chronic/dm-ldl': 'การตรวจไขมัน LDL ในผู้ป่วยเบาหวาน',
     '/chronic/hbv': 'ไวรัสตับอักเสบบี (HBV)',
     '/chronic/hcv': 'ไวรัสตับอักเสบซี (HCV)',
     '/mcwh': 'อนามัยแม่และเด็ก',

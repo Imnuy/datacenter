@@ -156,6 +156,40 @@ export async function GET(request: Request) {
       `
       const [r] = await conn.execute(sql)
       rows = r as any[]
+    } else if (type === 'dm-ldl') {
+      const month = searchParams.get('month') || '202601' // Default to Jan 2026
+      const monthLike = `${month}%`
+      const sql = `
+        SELECT 
+          h.hospcode,
+          h.hosname,
+          SUM(CASE WHEN c.dm = 1 THEN 1 ELSE 0 END) as target_count,
+          SUM(CASE WHEN c.dm = 1 AND l.pid IS NOT NULL THEN 1 ELSE 0 END) as achievement_count
+        FROM (
+          SELECT 
+            p.hospcode,
+            p.pid,
+            MAX(CASE WHEN (ch.chronic BETWEEN 'E10' AND 'E149') OR (ch.chronic LIKE 'E10%') OR (ch.chronic LIKE 'E11%') OR (ch.chronic LIKE 'E12%') OR (ch.chronic LIKE 'E13%') OR (ch.chronic LIKE 'E14%') THEN 1 ELSE 0 END) as dm
+          FROM person p
+          INNER JOIN chronic ch ON p.hospcode = ch.hospcode AND p.pid = ch.pid
+          WHERE p.typearea IN ('1', '3')
+            AND (p.discharge = '9' OR p.discharge IS NULL OR p.discharge = '')
+          GROUP BY p.hospcode, p.pid
+          HAVING dm = 1
+        ) c
+        LEFT JOIN (
+          SELECT DISTINCT lf.hospcode, lf.pid 
+          FROM labfu lf
+          INNER JOIN c_lab cl ON lf.labtest = cl.CodeLab
+          WHERE cl.EN LIKE '%LDL%'
+            AND lf.date_serv LIKE ?
+        ) l ON c.hospcode = l.hospcode AND c.pid = l.pid
+        RIGHT JOIN c_hos h ON c.hospcode = h.hospcode
+        GROUP BY h.hospcode, h.hosname
+        ORDER BY h.hospcode
+      `
+      const [r] = await conn.execute(sql, [monthLike])
+      rows = r as any[]
     }
 
     conn.release()

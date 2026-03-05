@@ -54,6 +54,7 @@ const menuItems: MenuItem[] = [
         icon: <Heart size={20} />,
         children: [
             { href: '/chronic/dm-ht', label: 'เบาหวาน/ความดัน', icon: <Activity size={16} /> },
+            { href: '/chronic/dm-ldl', label: 'การตรวจไขมัน LDL (DM)', icon: <Activity size={16} /> },
         ],
     },
     { href: '/mcwh', label: 'อนามัยแม่และเด็ก', icon: <Baby size={20} /> },
