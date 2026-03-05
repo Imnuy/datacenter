@@ -46,3 +46,4 @@ next-env.d.ts
 # project-specific
 package-lock.json
 link
+docs/datacenter.sql
