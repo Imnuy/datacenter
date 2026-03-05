@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Menu } from 'lucide-react'
 import Sidebar from './Sidebar'
 
 const MENU_LABELS: Record<string, string> = {
@@ -32,10 +34,20 @@ const MENU_LABELS: Record<string, string> = {
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+    // ปิดเมนูเมื่อเปลี่ยนหน้า
+    useEffect(() => {
+        setMobileMenuOpen(false)
+    }, [pathname])
 
     return (
         <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-primary)' }}>
-            <Sidebar activePath={pathname} />
+            <Sidebar
+                activePath={pathname}
+                isMobileOpen={mobileMenuOpen}
+                onCloseMobile={() => setMobileMenuOpen(false)}
+            />
 
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
                 {/* Top bar */}
@@ -47,6 +59,24 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     padding: '0 22px', gap: '10px', flexShrink: 0,
                     boxShadow: 'var(--shadow-sm)',
                 }}>
+                    {/* ปุ่ม Hamburger เฉพาะบนมือถือ */}
+                    <button
+                        className="mobile-menu-btn"
+                        onClick={() => setMobileMenuOpen(true)}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--text-primary)',
+                            padding: '4px',
+                            marginRight: '8px',
+                            display: 'none', // ซ่อนในจอใหญ่ (แสดงผ่าน CSS)
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Menu size={22} />
+                    </button>
+
                     <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '7px' }}>
                         <span style={{ color: 'var(--accent)', fontWeight: 600 }}>43 แฟ้ม</span>
                         <span style={{ color: 'var(--border)' }}>›</span>
