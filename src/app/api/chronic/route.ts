@@ -178,10 +178,11 @@ export async function GET(request: Request) {
           HAVING dm = 1
         ) c
         LEFT JOIN (
-          SELECT DISTINCT hospcode, pid 
-          FROM labfu 
-          WHERE labtest = '0541402'
-            AND date_serv LIKE ?
+          SELECT DISTINCT lf.hospcode, lf.pid 
+          FROM labfu lf
+          INNER JOIN c_lab cl ON lf.labtest = cl.CodeLab
+          WHERE cl.EN LIKE '%LDL%'
+            AND lf.date_serv LIKE ?
         ) l ON c.hospcode = l.hospcode AND c.pid = l.pid
         RIGHT JOIN c_hos h ON c.hospcode = h.hospcode
         GROUP BY h.hospcode, h.hosname
