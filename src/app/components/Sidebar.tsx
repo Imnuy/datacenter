@@ -71,6 +71,14 @@ const menuItems: MenuItem[] = [
     },
     { href: '/reimbursement', label: 'จัดเก็บรายได้', icon: <Wallet size={20} /> },
     { href: '/custom-report', label: 'CUSTOM-Report', icon: <FileText size={20} /> },
+    {
+        href: '/survey',
+        label: 'ข้อมูลสำรวจ',
+        icon: <ClipboardList size={20} />,
+        children: [
+            { href: '/survey/wat-bot', label: 'ข้อมูลวัด อำเภอวัดโบสถ์', icon: <Hospital size={16} /> },
+        ],
+    },
 ]
 
 export default function Sidebar({
