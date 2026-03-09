@@ -209,7 +209,7 @@ export default function UploadPage() {
                 <p style={{ margin: 0, fontSize: '13px', color: 'var(--accent)', fontWeight: 600 }}>Upload Center</p>
                 <h1 style={{ margin: 0, fontSize: '32px', color: 'var(--text-primary)' }}>อัปโหลดข้อมูลแฟ้ม</h1>
                 <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>
-                    รองรับ 2 ประเภทแฟ้ม (ZIP เท่านั้น) ระบบจะบันทึกลงโฟลเดอร์ <code style={{ background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '6px' }}>uploads/</code>
+                    รองรับ 2 ประเภทแฟ้ม (ZIP เท่านั้น) ระบบจะบันทึกลงโฟลเดอร์ <code style={{ background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '6px' }}>upload/</code>
                 </p>
             </div>
 

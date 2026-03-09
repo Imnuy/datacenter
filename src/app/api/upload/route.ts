@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
 
-        const folderPath = path.join(process.cwd(), 'zip', type)
+        const folderPath = path.join(process.cwd(), 'upload', type)
         await fs.mkdir(folderPath, { recursive: true })
 
         const safeName = sanitizeFileName(file.name)
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
         const result: UploadResult = {
             filename,
-            folder: `zip/${type}`,
+            folder: `upload/${type}`,
         }
 
         return NextResponse.json({ success: true, data: result })
