@@ -62,7 +62,9 @@ export default function ChatAIPage() {
       })
       if (!response.ok) throw new Error('Failed to fetch response')
       const data = await response.json()
-      setMessages(prev => [...prev, { ...data, timestamp: Date.now() }])
+      // Fix: Some responses might be nested or have different structures
+      const content = data.content || data.text || "No response received.";
+      setMessages(prev => [...prev, { role: 'assistant', content, timestamp: Date.now() }])
     } catch (err) {
       console.error(err)
       setMessages(prev => [...prev, { role: 'assistant', content: "ขออภัยครับ เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์", timestamp: Date.now() }])
@@ -206,11 +208,13 @@ export default function ChatAIPage() {
                   key={idx}
                   onClick={() => {
                     setInput(item.prompt);
-                    // The send will happen on next render or we can trigger it
+                    // Trigger send by providing the input directly to a version of handleSend that can take it, 
+                    // but since handleSend is already defined, we'll just wait for state update.
+                    // 200ms is safer for state propagation
                     setTimeout(() => {
                         const btn = document.getElementById('send-button');
                         btn?.click();
-                    }, 100);
+                    }, 200);
                   }}
                   style={{
                     padding: '24px', background: 'white', border: '1px solid var(--border)',

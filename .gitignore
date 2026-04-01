@@ -48,3 +48,10 @@ package-lock.json
 link
 docs/datacenter.sql
 lookup/db/datacenter.sql
+
+# local scratch / generated artifacts
+.playwright-mcp/
+backup_from_remote.sql
+test_chat_ai.js
+test_genai.js
+upload/
