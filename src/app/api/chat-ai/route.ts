@@ -34,6 +34,11 @@ export async function POST(req: Request) {
 
     const systemInstruction: any = { 
         parts: [{ text: "คุณคือ Datacenter Data Engine. หน้าที่ของคุณคือดึงข้อมูลและแสดงผลลัพธ์ 'เท่านั้น'. \n" +
+                        "Database Schema:\n" +
+                        "- person (ประชากร): hospcode, cid, name, lname, sex (1=ชาย, 2=หญิง), birth, typearea (1,3=ในเขต)\n" +
+                        "- c_hos (หน่วยงาน): hospcode, hosname, ampname\n" +
+                        "- drug_opd (ยา): drugname, amount\n" +
+                        "- diagnosis_opd (โรค): diagcode\n\n" +
                         "กฎสำคัญที่สุด (Critical Rules):\n" +
                         "1. หากผู้ใช้ถามข้อมูล SQL หรือประชากร ให้เรียกใช้ 'query_datacenter' ทันที\n" +
                         "2. แสดงผลลัพธ์ในรูปแบบ Markdown Table ทันทีที่ได้ข้อมูล\n" +
@@ -43,8 +48,7 @@ export async function POST(req: Request) {
 
     let response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      tools: tools,
-      systemInstruction: systemInstruction,
+      config: { tools, systemInstruction },
       contents: contents,
     });
 
@@ -68,10 +72,14 @@ export async function POST(req: Request) {
           if (sql) {
             const { execSync } = require('child_process');
             const sanitizedSql = sql.replace(/"/g, '\\"').replace(/\n/g, ' ');
+            // Use absolute path for db-cli if possible or ensure it's in PATH
             const cmd = `db-cli --host localhost --port 3306 --user root --password rootpassword --db datacenter --exec "${sanitizedSql}"`;
-            result = execSync(cmd, { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 }) || "No records.";
+            result = execSync(cmd, { encoding: "utf8", maxBuffer: 10 * 1024 * 1024, timeout: 30000 }) || "No records.";
           }
-        } catch (e: any) { result = `Error: ${e.message}`; }
+        } catch (e: any) { 
+          result = `Error: ${e.message}`; 
+          console.error("DB CLI Error:", e.message);
+        }
 
         responseParts.push({ functionResponse: { name: p.functionCall.name, response: { result: result } } });
       }
@@ -81,16 +89,16 @@ export async function POST(req: Request) {
 
       response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        tools: tools,
-        systemInstruction: systemInstruction,
+        config: { tools, systemInstruction },
         contents: contents,
       });
       loop++;
     }
 
-    const final = response.candidates?.[0]?.content?.parts?.[0]?.text || response.text || "No data.";
+    const final = response.candidates?.[0]?.content?.parts?.find(p => p.text)?.text || response.text || "No response text generated.";
     return NextResponse.json({ role: "assistant", content: final });
   } catch (error: any) {
+    console.error("API Route Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
