@@ -60,14 +60,23 @@ export default function ChatAIPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: updatedMessages }),
       })
-      if (!response.ok) throw new Error('Failed to fetch response')
       const data = await response.json()
+      if (!response.ok) {
+        const errorMessage =
+          typeof data?.error === 'string' && data.error.trim()
+            ? data.error
+            : 'ไม่สามารถเชื่อมต่อบริการ AI ได้ในขณะนี้'
+        throw new Error(errorMessage)
+      }
       // Fix: Some responses might be nested or have different structures
       const content = data.content || data.text || "No response received.";
       setMessages(prev => [...prev, { role: 'assistant', content, timestamp: Date.now() }])
     } catch (err) {
       console.error(err)
-      setMessages(prev => [...prev, { role: 'assistant', content: "ขออภัยครับ เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์", timestamp: Date.now() }])
+      const errorMessage = err instanceof Error && err.message
+        ? err.message
+        : "ขออภัยครับ เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์"
+      setMessages(prev => [...prev, { role: 'assistant', content: errorMessage, timestamp: Date.now() }])
     } finally {
       setIsLoading(false)
     }

@@ -11,6 +11,138 @@ const DB_PORT = process.env.DB_PORT ?? "3306";
 const DB_USER = process.env.DB_USER ?? "root";
 const DB_PASS = process.env.DB_PASS ?? "rootpassword";
 const DB_NAME = process.env.DB_NAME ?? "datacenter";
+const DB_CLI_PATH = process.env.DB_CLI_PATH?.trim();
+const GEMINI_MODEL = "gemini-2.5-flash";
+
+type ParsedModelError = {
+  status?: number;
+  code?: string;
+  message: string;
+  retryAfterSeconds?: number;
+};
+
+function runDbCli(sql: string) {
+  const baseArgs = [
+    "--engine", "mysql",
+    "--host", DB_HOST,
+    "--port", String(DB_PORT),
+    "--user", DB_USER,
+    "--password", DB_PASS,
+    "--database", DB_NAME,
+    "--exec", String(sql),
+  ];
+
+  const candidates: Array<{ cmd: string; args: string[] }> = [];
+
+  if (process.platform === "win32") {
+    const toPsLiteral = (value: string) => `'${value.replace(/'/g, "''")}'`;
+    const commandName = DB_CLI_PATH || "db-cli";
+    const flagPairs = [
+      ["--engine", "mysql"],
+      ["--host", DB_HOST],
+      ["--port", String(DB_PORT)],
+      ["--user", DB_USER],
+      ["--password", DB_PASS],
+      ["--database", DB_NAME],
+      ["--exec", String(sql)],
+    ];
+    const psCommand = `& ${toPsLiteral(commandName)} ${flagPairs
+      .map(([flag, value]) => `${flag} ${toPsLiteral(value)}`)
+      .join(" ")}`;
+
+    const result = spawnSync(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-Command",
+        psCommand,
+      ],
+      {
+        encoding: "utf8",
+        timeout: 30000,
+        maxBuffer: 10 * 1024 * 1024,
+      }
+    );
+
+    if (!result.error || !["ENOENT", "EINVAL"].includes((result.error as NodeJS.ErrnoException).code ?? "")) {
+      return result;
+    }
+  }
+
+  if (DB_CLI_PATH) {
+    candidates.push({ cmd: DB_CLI_PATH, args: baseArgs });
+  }
+
+  candidates.push({ cmd: "db-cli", args: baseArgs });
+  candidates.push({ cmd: "db-cli.cmd", args: baseArgs });
+  candidates.push({ cmd: "npx", args: ["-y", "db-cli", ...baseArgs] });
+  candidates.push({ cmd: "npx.cmd", args: ["-y", "db-cli", ...baseArgs] });
+
+  let lastResult: ReturnType<typeof spawnSync> | null = null;
+
+  for (const candidate of candidates) {
+    const result = spawnSync(candidate.cmd, candidate.args, {
+      encoding: "utf8",
+      timeout: 30000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    // Try next candidate if command is not found or cannot be executed directly in this environment.
+    if (result.error) {
+      const errCode = (result.error as NodeJS.ErrnoException).code;
+      if (errCode === "ENOENT" || errCode === "EINVAL") {
+        lastResult = result;
+        continue;
+      }
+    }
+
+    return result;
+  }
+
+  return lastResult;
+}
+
+function parseModelError(error: unknown): ParsedModelError {
+  const fallback: ParsedModelError = {
+    message: error instanceof Error ? error.message : "Unknown AI error",
+  };
+
+  const rawMessage = error instanceof Error ? error.message : "";
+  if (!rawMessage) return fallback;
+
+  try {
+    const parsed = JSON.parse(rawMessage);
+    const errorBody = parsed?.error;
+    if (!errorBody) return fallback;
+
+    const retryDelay = errorBody.details?.find?.((detail: { "@type"?: string; retryDelay?: string }) =>
+      detail?.["@type"] === "type.googleapis.com/google.rpc.RetryInfo"
+    )?.retryDelay;
+
+    const retryAfterSeconds = retryDelay ? Number.parseInt(String(retryDelay), 10) : undefined;
+
+    return {
+      status: errorBody.code,
+      code: errorBody.status,
+      message: errorBody.message ?? fallback.message,
+      retryAfterSeconds: Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : undefined,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function buildClientErrorMessage(parsedError: ParsedModelError) {
+  if (parsedError.code === "RESOURCE_EXHAUSTED" || parsedError.status === 429) {
+    const retryText = parsedError.retryAfterSeconds
+      ? ` กรุณาลองใหม่อีกครั้งในประมาณ ${parsedError.retryAfterSeconds} วินาที`
+      : "";
+
+    return `ขณะนี้โควตาการใช้งาน AI สำหรับ ${GEMINI_MODEL} เต็มชั่วคราว${retryText}`;
+  }
+
+  return "ไม่สามารถเชื่อมต่อบริการ AI ได้ในขณะนี้";
+}
 
 export async function POST(req: Request) {
   try {
@@ -54,7 +186,7 @@ export async function POST(req: Request) {
     };
 
     let response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_MODEL,
       config: { tools, systemInstruction },
       contents: contents,
     });
@@ -77,29 +209,22 @@ export async function POST(req: Request) {
         try {
           const sql = (p.functionCall.args as any)?.sql;
           if (sql) {
-            const dbCli = spawnSync(
-              "db-cli",
-              [
-                "--host", DB_HOST,
-                "--port", String(DB_PORT),
-                "--user", DB_USER,
-                "--password", DB_PASS,
-                "--db", DB_NAME,
-                "--exec", String(sql),
-              ],
-              { encoding: "utf8", timeout: 30000, maxBuffer: 10 * 1024 * 1024 }
-            );
+            const dbCli = runDbCli(String(sql));
+
+            if (!dbCli) {
+              throw new Error("db-cli not executed");
+            }
 
             if (dbCli.error) {
               throw dbCli.error;
             }
 
             if (dbCli.status !== 0) {
-              const errText = (dbCli.stderr || "").trim() || `db-cli exited with status ${dbCli.status}`;
+              const errText = String(dbCli.stderr ?? "").trim() || `db-cli exited with status ${dbCli.status}`;
               throw new Error(errText);
             }
 
-            result = (dbCli.stdout || "").trim() || "No records.";
+            result = String(dbCli.stdout ?? "").trim() || "No records.";
           }
         } catch (e: any) { 
           result = `Error: ${e.message}`; 
@@ -113,7 +238,7 @@ export async function POST(req: Request) {
       contents.push({ role: "user", parts: responseParts });
 
       response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: GEMINI_MODEL,
         config: { tools, systemInstruction },
         contents: contents,
       });
@@ -122,8 +247,21 @@ export async function POST(req: Request) {
 
     const final = response.candidates?.[0]?.content?.parts?.find(p => p.text)?.text || response.text || "No response text generated.";
     return NextResponse.json({ role: "assistant", content: final });
-  } catch (error: any) {
-    console.error("API Route Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const parsedError = parseModelError(error);
+    const clientMessage = buildClientErrorMessage(parsedError);
+    const status = parsedError.status && parsedError.status >= 400 ? parsedError.status : 500;
+
+    console.error("API Route Error:", parsedError.message);
+
+    return NextResponse.json(
+      {
+        error: clientMessage,
+        details: parsedError.message,
+        code: parsedError.code,
+        retryAfterSeconds: parsedError.retryAfterSeconds,
+      },
+      { status }
+    );
   }
 }
