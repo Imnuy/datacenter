@@ -2,82 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import {
-    Users, Hospital, Activity, Heart, BarChart3,
-    FlaskConical, Baby, Syringe, Home, Building2,
+    Hospital,
+    Users,
+    User,
+    UserRound,
+    Stethoscope,
+    Activity,
+    ChevronRight,
+    Baby,
+    Home,
+    Building2,
+    FlaskConical,
+    Syringe,
+    Heart
 } from 'lucide-react'
 import { getDashboardSummary, DashboardSummary } from '@/app/actions/dashboard'
-
-interface StatCardProps {
-    title: string
-    value: string
-    sub?: string
-    icon: React.ReactNode
-    color: string
-    highlight?: boolean
-}
-
-function StatCard({ title, value, sub, icon, color, highlight }: StatCardProps) {
-    return (
-        <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            borderRadius: '14px',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'default',
-        }}
-            onMouseEnter={e => {
-                (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
-                (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.10)'
-            }}
-            onMouseLeave={e => {
-                (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
-                (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
-            }}
-        >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px' }}>{title}</div>
-                    <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{value}</div>
-                    {sub && <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{sub}</div>}
-                </div>
-                <div style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '12px',
-                    background: color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                }}>
-                    {icon}
-                </div>
-            </div>
-        </div>
-    )
-}
-
-function SectionLabel({ label }: { label: string }) {
-    return (
-        <div style={{
-            gridColumn: '1 / -1',
-            fontSize: '13px',
-            fontWeight: 600,
-            color: 'var(--text-muted)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            borderBottom: '1px solid var(--border)',
-            paddingBottom: '6px',
-            marginTop: '8px',
-        }}>
-            {label}
-        </div>
-    )
-}
 
 export default function DashboardOverview() {
     const [data, setData] = useState<DashboardSummary | null>(null)
@@ -90,112 +29,322 @@ export default function DashboardOverview() {
             .finally(() => setLoading(false))
     }, [])
 
-    const fmt = (n: number | undefined) => n !== undefined ? n.toLocaleString() : '—'
-    const v = (n: number | undefined) => loading ? '...' : fmt(n)
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+            </div>
+        )
+    }
+
+    const fmt = (n: number | undefined) => n !== undefined ? n.toLocaleString() : '0'
 
     return (
-        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Title */}
+        <div className="animate-fade-in space-y-8 pb-12">
+            {/* Header */}
             <div>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                    ภาพรวม Dashboard
-                </h1>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                    ข้อมูลภาพรวม อ.วัดโบสถ์ · ปีงบประมาณ 2569
-                </p>
+                <h1 className="text-2xl font-bold text-slate-800 mb-1">ภาพรวม Dashboard</h1>
+                <p className="text-sm text-slate-500">ข้อมูลภาพรวม อ.วัดโบสถ์ · ปีงบประมาณ 2569</p>
             </div>
 
-            {/* ===== กลุ่ม 1: ภาพรวมพื้นที่ ===== */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                gap: '14px',
-            }}>
-                <SectionLabel label="📍 ภาพรวมพื้นที่" />
-                <StatCard
-                    title="หน่วยบริการ"
-                    value={v(data?.hospitals)}
-                    sub="รพ.สต. ในเครือข่าย"
-                    icon={<Building2 size={22} color="white" />}
-                    color="linear-gradient(135deg,#0f766e,#14b8a6)"
-                    highlight
-                />
-                <StatCard
-                    title="ประชากรทั้งหมด"
-                    value={v(data?.population)}
-                    sub="Type 1, 3 ยังไม่จำหน่าย"
-                    icon={<Users size={22} color="white" />}
-                    color="linear-gradient(135deg,#3b82f6,#6366f1)"
-                    highlight
-                />
-                <StatCard
-                    title="หลังคาเรือน"
-                    value={v(data?.houses)}
-                    sub="จำนวนครัวเรือน"
-                    icon={<Home size={22} color="white" />}
-                    color="linear-gradient(135deg,#7c3aed,#a855f7)"
-                    highlight
-                />
+            {/* Row 1: Top Status Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-8 text-white shadow-lg flex flex-col items-center justify-center text-center transition-transform hover:scale-[1.02]">
+                    <Hospital size={48} className="mb-4 opacity-80" />
+                    <div>
+                        <div className="text-5xl font-bold mb-1">{fmt(data?.hospitals)}</div>
+                        <div className="text-lg opacity-90">จำนวนหน่วยบริการ</div>
+                    </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-pink-400 to-rose-500 rounded-3xl p-8 text-white shadow-lg flex flex-col items-center justify-center text-center transition-transform hover:scale-[1.02]">
+                    <Stethoscope size={48} className="mb-4 opacity-80" />
+                    <div>
+                        <div className="text-5xl font-bold mb-1">{fmt(data?.staff)}</div>
+                        <div className="text-lg opacity-90">จำนวนบุคลากรทั้งหมด</div>
+                    </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-cyan-400 to-blue-500 rounded-3xl p-8 text-white shadow-lg flex flex-col items-center justify-center text-center transition-transform hover:scale-[1.02]">
+                    <UserRound size={48} className="mb-4 opacity-80" />
+                    <div>
+                        <div className="text-5xl font-bold mb-1">{fmt(data?.population)}</div>
+                        <div className="text-lg opacity-90">จำนวนประชากร (Type 1,3)</div>
+                    </div>
+                </div>
             </div>
 
-            {/* ===== กลุ่ม 2: บริการสุขภาพ (ปีงบ 69) ===== */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                gap: '14px',
-            }}>
-                <SectionLabel label="🏥 บริการสุขภาพ ปีงบ 69" />
-                <StatCard
-                    title="ผู้รับบริการ OPD"
-                    value={v(data?.opd)}
-                    sub="ครั้งที่มารับบริการ"
-                    icon={<Hospital size={22} color="white" />}
-                    color="linear-gradient(135deg,#10b981,#059669)"
-                />
-                <StatCard
-                    title="LAB ผลตรวจ"
-                    value={v(data?.lab)}
-                    sub="รายการตรวจทั้งหมด"
-                    icon={<FlaskConical size={22} color="white" />}
-                    color="linear-gradient(135deg,#8b5cf6,#7c3aed)"
-                />
-                <StatCard
-                    title="วัคซีน EPI"
-                    value={v(data?.epi)}
-                    sub="ครั้งที่ฉีด"
-                    icon={<Syringe size={22} color="white" />}
-                    color="linear-gradient(135deg,#06b6d4,#0891b2)"
-                />
+            {/* Row 2: Charts Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Pie Chart: ประเภทหน่วยบริการ */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center">
+                    <h3 className="text-lg font-bold mb-6 text-center text-slate-700">ประเภทหน่วยบริการ</h3>
+                    <div className="relative w-44 h-44 mb-6">
+                        <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
+                            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f1f5f9" strokeWidth="4" />
+                            {data?.hospitalTypes.reduce((acc, type, i) => {
+                                const offset = acc.currentOffset
+                                acc.currentOffset += type.percentage
+                                return {
+                                    elements: [
+                                        ...acc.elements,
+                                        <circle
+                                            key={i}
+                                            cx="18" cy="18" r="15.915"
+                                            fill="none"
+                                            stroke={type.color}
+                                            strokeWidth="5"
+                                            strokeDasharray={`${type.percentage} 100`}
+                                            strokeDashoffset={-offset}
+                                        />
+                                    ],
+                                    currentOffset: acc.currentOffset
+                                }
+                            }, { elements: [] as any[], currentOffset: 0 }).elements}
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-3xl font-bold text-slate-800">{data?.hospitals}</span>
+                            <span className="text-xs text-slate-400">แห่ง</span>
+                        </div>
+                    </div>
+                    <div className="w-full space-y-2 text-sm">
+                        {data?.hospitalTypes.map((type, i) => (
+                            <div key={i} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-slate-600">
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }}></div>
+                                    <span>{type.name}: {type.count} แห่ง</span>
+                                </div>
+                                <span className="text-slate-400">({type.percentage}%)</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Donut Chart: บริการสุขภาพ */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center">
+                    <h3 className="text-lg font-bold mb-6 text-center text-slate-700">กิจกรรมบริการหลัก (ปีงบ 69)</h3>
+                    <div className="w-full space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                                    <Hospital size={18} />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">ผู้รับบริการ OPD</span>
+                            </div>
+                            <span className="font-bold text-slate-800">{fmt(data?.opd)}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-violet-100 text-violet-600 rounded-lg">
+                                    <FlaskConical size={18} />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">รายการตรวจ LAB</span>
+                            </div>
+                            <span className="font-bold text-slate-800">{fmt(data?.lab)}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-cyan-100 text-cyan-600 rounded-lg">
+                                    <Syringe size={18} />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">วัคซีน EPI</span>
+                            </div>
+                            <span className="font-bold text-slate-800">{fmt(data?.epi)}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                                    <FlaskConical size={18} />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">ไวรัสตับอักเสบบี (HBV)</span>
+                            </div>
+                            <span className="font-bold text-slate-800">{fmt(data?.hbv)}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                    <FlaskConical size={18} />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">ไวรัสตับอักเสบซี (HCV)</span>
+                            </div>
+                            <span className="font-bold text-slate-800">{fmt(data?.hcv)}</span>
+                        </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t w-full">
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                            <span>ความครอบคลุมครัวเรือน</span>
+                            <span>{fmt(data?.houses)} หลัง</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Patient Age Group Chart */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center">
+                    <h3 className="text-lg font-bold mb-6 text-center text-slate-700">สัดส่วนประชากรแยกตามช่วงวัย</h3>
+                    <div className="relative w-44 h-44 mb-6">
+                        <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
+                            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f1f5f9" strokeWidth="4" />
+                            {data?.patientAges.reduce((acc, age, i) => {
+                                const offset = acc.currentOffset
+                                acc.currentOffset += age.percentage
+                                return {
+                                    elements: [
+                                        ...acc.elements,
+                                        <circle
+                                            key={i}
+                                            cx="18" cy="18" r="15.915"
+                                            fill="none"
+                                            stroke={age.color}
+                                            strokeWidth="5"
+                                            strokeDasharray={`${age.percentage} 100`}
+                                            strokeDashoffset={-offset}
+                                        />
+                                    ],
+                                    currentOffset: acc.currentOffset
+                                }
+                            }, { elements: [] as any[], currentOffset: 0 }).elements}
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                            <span className="text-xs text-slate-400 leading-tight">ทั้งหมด</span>
+                            <span className="text-3xl font-bold text-slate-800">{fmt(data?.population)}</span>
+                            <span className="text-xs text-slate-400 leading-tight">คน</span>
+                        </div>
+                    </div>
+                    <div className="w-full space-y-2 text-sm">
+                        {data?.patientAges.map((age, i) => (
+                            <div key={i} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-slate-600">
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: age.color }}></div>
+                                    <span>{age.name}: {fmt(age.count)}</span>
+                                </div>
+                                <span className="text-slate-400">({age.percentage}%)</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
 
-            {/* ===== กลุ่ม 3: โรคเรื้อรัง & แม่และเด็ก ===== */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                gap: '14px',
-            }}>
-                <SectionLabel label="❤️ โรคเรื้อรัง & แม่และเด็ก" />
-                <StatCard
-                    title="ผู้ป่วยโรคเรื้อรัง"
-                    value={v(data?.chronic)}
-                    sub="DM + HT (คนไม่ซ้ำ)"
-                    icon={<Heart size={22} color="white" />}
-                    color="linear-gradient(135deg,#ef4444,#dc2626)"
-                />
-                <StatCard
-                    title="ANC ฝากครรภ์"
-                    value={v(data?.anc)}
-                    sub="ครั้งที่มารับบริการ"
-                    icon={<Baby size={22} color="white" />}
-                    color="linear-gradient(135deg,#ec4899,#db2777)"
-                />
-                <StatCard
-                    title="คลอด"
-                    value={v(data?.birth)}
-                    sub="จำนวนการคลอด ปีงบ 69"
-                    icon={<Activity size={22} color="white" />}
-                    color="linear-gradient(135deg,#f59e0b,#d97706)"
-                />
+            {/* Row 3: Gender Statistics */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xl font-bold text-slate-700">
+                    <Users className="text-blue-500" />
+                    <h2>สัดส่วนประชากรแยกตามเพศ</h2>
+                </div>
+
+                <div className="bg-gradient-to-r from-slate-700 to-slate-900 rounded-3xl p-6 text-white shadow-lg flex justify-between items-center">
+                    <div>
+                        <div className="text-sm opacity-80 mb-2">สถิติรวมประชากรทั้งพื้นที่</div>
+                        <div className="flex gap-6 text-sm font-medium">
+                            <span className="flex items-center gap-2">👱‍♂️ ชาย: {fmt(data?.genderStats.male)} คน ({data?.genderStats.malePercent}%)</span>
+                            <span className="flex items-center gap-2">👩 หญิง: {fmt(data?.genderStats.female)} คน ({data?.genderStats.femalePercent}%)</span>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-4xl font-bold">{fmt(data?.genderStats.total)}</div>
+                        <div className="text-xs opacity-80 uppercase tracking-widest">Grand Total</div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-cyan-100 text-cyan-600 rounded-full">
+                                    <User size={20} />
+                                </div>
+                                <span className="font-bold text-slate-700">เพศชาย</span>
+                            </div>
+                            <span className="text-2xl font-bold text-cyan-600">{data?.genderStats.malePercent}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
+                            <div className="h-full bg-cyan-400" style={{ width: `${data?.genderStats.malePercent}%` }}></div>
+                        </div>
+                        <p className="text-sm text-slate-400">จำนวนทั้งหมด {fmt(data?.genderStats.male)} คน จากประชากรที่ยังไม่จำหน่าย</p>
+                    </div>
+
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-rose-100 text-rose-600 rounded-full">
+                                    <User size={20} />
+                                </div>
+                                <span className="font-bold text-slate-700">เพศหญิง</span>
+                            </div>
+                            <span className="text-2xl font-bold text-rose-500">{data?.genderStats.femalePercent}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
+                            <div className="h-full bg-rose-400" style={{ width: `${data?.genderStats.femalePercent}%` }}></div>
+                        </div>
+                        <p className="text-sm text-slate-400">จำนวนทั้งหมด {fmt(data?.genderStats.female)} คน จากประชากรที่ยังไม่จำหน่าย</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Row 4: Special Indicators */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xl font-bold text-slate-700">
+                    <Activity className="text-indigo-500" />
+                    <h2>ตัวชี้วัดสำคัญ (เรื้อรัง & แม่และเด็ก)</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 transition-all hover:border-rose-200">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <div className="text-sm font-bold text-rose-600 mb-1">โรคเรื้อรัง</div>
+                                <div className="text-xs text-slate-400">DM + HT (คนไม่ซ้ำ)</div>
+                            </div>
+                            <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-500">
+                                <Heart size={20} />
+                            </div>
+                        </div>
+                        <div className="mb-4">
+                            <div className="text-4xl font-bold text-slate-800">{fmt(data?.chronic)}</div>
+                            <div className="text-xs text-slate-400 mt-1">คนในพื้นที่รับผิดชอบ</div>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div className="h-full bg-rose-500" style={{ width: '45%' }}></div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 transition-all hover:border-pink-200">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <div className="text-sm font-bold text-pink-600 mb-1">ฝากครรภ์ ANC</div>
+                                <div className="text-xs text-slate-400">ครั้งที่มารับบริการ</div>
+                            </div>
+                            <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center text-pink-500">
+                                <Baby size={20} />
+                            </div>
+                        </div>
+                        <div className="mb-4">
+                            <div className="text-4xl font-bold text-slate-800">{fmt(data?.anc)}</div>
+                            <div className="text-xs text-slate-400 mt-1">จำนวนการรับบริการสะสม</div>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div className="h-full bg-pink-500" style={{ width: '30%' }}></div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 transition-all hover:border-amber-200">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <div className="text-sm font-bold text-amber-600 mb-1">การคลอด</div>
+                                <div className="text-xs text-slate-400">จำนวนการคลอด ปี 69</div>
+                            </div>
+                            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-500">
+                                <Activity size={20} />
+                            </div>
+                        </div>
+                        <div className="mb-4">
+                            <div className="text-4xl font-bold text-slate-800">{fmt(data?.birth)}</div>
+                            <div className="text-xs text-slate-400 mt-1">คน (เกิดในระบบ)</div>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div className="h-full bg-amber-500" style={{ width: '15%' }}></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     )

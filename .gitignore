@@ -47,3 +47,4 @@ next-env.d.ts
 package-lock.json
 link
 docs/datacenter.sql
+lookup/db/datacenter.sql
