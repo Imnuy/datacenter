@@ -1,9 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { spawnSync } from "child_process";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
+
+const DB_HOST = process.env.DB_HOST ?? "localhost";
+const DB_PORT = process.env.DB_PORT ?? "3306";
+const DB_USER = process.env.DB_USER ?? "root";
+const DB_PASS = process.env.DB_PASS ?? "rootpassword";
+const DB_NAME = process.env.DB_NAME ?? "datacenter";
 
 export async function POST(req: Request) {
   try {
@@ -70,11 +77,29 @@ export async function POST(req: Request) {
         try {
           const sql = (p.functionCall.args as any)?.sql;
           if (sql) {
-            const { execSync } = require('child_process');
-            const sanitizedSql = sql.replace(/"/g, '\\"').replace(/\n/g, ' ');
-            // Use absolute path for db-cli if possible or ensure it's in PATH
-            const cmd = `db-cli --host localhost --port 3306 --user root --password rootpassword --db datacenter --exec "${sanitizedSql}"`;
-            result = execSync(cmd, { encoding: "utf8", maxBuffer: 10 * 1024 * 1024, timeout: 30000 }) || "No records.";
+            const dbCli = spawnSync(
+              "db-cli",
+              [
+                "--host", DB_HOST,
+                "--port", String(DB_PORT),
+                "--user", DB_USER,
+                "--password", DB_PASS,
+                "--db", DB_NAME,
+                "--exec", String(sql),
+              ],
+              { encoding: "utf8", timeout: 30000, maxBuffer: 10 * 1024 * 1024 }
+            );
+
+            if (dbCli.error) {
+              throw dbCli.error;
+            }
+
+            if (dbCli.status !== 0) {
+              const errText = (dbCli.stderr || "").trim() || `db-cli exited with status ${dbCli.status}`;
+              throw new Error(errText);
+            }
+
+            result = (dbCli.stdout || "").trim() || "No records.";
           }
         } catch (e: any) { 
           result = `Error: ${e.message}`; 
