@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import pool from '@/lib/db'
 import type { ResultSetHeader } from 'mysql2/promise'
+import { customReportHasPassKeyColumn } from '@/lib/custom-report-schema'
 
 type CreateBody = {
     report_name?: string
@@ -49,10 +50,16 @@ export async function POST(request: Request) {
 
         const conn = await pool.getConnection()
         try {
-            const [result] = await conn.execute<ResultSetHeader>(
-                `INSERT INTO custom_report (report_name, sql_command, pass_key, is_active, d_update) VALUES (?, ?, ?, 'y', NOW())`,
-                [report_name, sql_command, pass_key]
-            )
+            const hasPassKey = await customReportHasPassKeyColumn()
+            const [result] = hasPassKey
+                ? await conn.execute<ResultSetHeader>(
+                    `INSERT INTO custom_report (report_name, sql_command, pass_key, is_active, d_update) VALUES (?, ?, ?, 'y', NOW())`,
+                    [report_name, sql_command, pass_key]
+                )
+                : await conn.execute<ResultSetHeader>(
+                    `INSERT INTO custom_report (report_name, sql_command, is_active, d_update) VALUES (?, ?, 'y', NOW())`,
+                    [report_name, sql_command]
+                )
 
             const insertId = Number(result.insertId || 0)
             return NextResponse.json({ success: true, id: insertId })
