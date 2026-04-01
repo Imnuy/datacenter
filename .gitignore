@@ -51,6 +51,9 @@ lookup/db/datacenter.sql
 
 # local scratch / generated artifacts
 .playwright-mcp/
+.claude/
+.playwright-cli/
+.next-dev.log
 backup_from_remote.sql
 test_chat_ai.js
 test_genai.js
