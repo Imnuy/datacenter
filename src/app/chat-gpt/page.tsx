@@ -20,7 +20,7 @@ interface Message {
 
 const COLORS = ['#2e7d32', '#3f7bdc', '#f9a825', '#e53935', '#0288d1', '#7b1fa2'];
 
-export default function ChatAIPage() {
+export default function ChatGPTPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -28,7 +28,7 @@ export default function ChatAIPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem('chat_ai_session')
+    const saved = localStorage.getItem('chat_gpt_session')
     if (saved) {
       try {
         setMessages(JSON.parse(saved))
@@ -42,7 +42,7 @@ export default function ChatAIPage() {
 
   useEffect(() => {
     if (messages.length > 0) {
-      localStorage.setItem('chat_ai_session', JSON.stringify(messages))
+      localStorage.setItem('chat_gpt_session', JSON.stringify(messages))
     }
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -55,7 +55,7 @@ export default function ChatAIPage() {
     setInput('')
     setIsLoading(true)
     try {
-      const response = await fetch('/api/chat-ai', {
+      const response = await fetch('/api/chat-gpt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: updatedMessages }),
@@ -161,11 +161,11 @@ export default function ChatAIPage() {
             <Sparkles size={22} fill="white" />
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: 'var(--accent)', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>Chat AI (Nemotron 3 Super)<span style={{ fontSize: '10px', padding: '2px 8px', background: 'var(--bg-active)', borderRadius: '10px', fontWeight: 500 }}>BETA</span></div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>วิเคราะห์ข้อมูลและช่วยเหลือการใช้งาน HDC</div>
+            <div style={{ fontWeight: 700, color: 'var(--accent)', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>Chat GPT (OpenAI)<span style={{ fontSize: '10px', padding: '2px 8px', background: 'var(--bg-active)', borderRadius: '10px', fontWeight: 500 }}>BETA</span></div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>วิเคราะห์ข้อมูลและช่วยเหลือการใช้งาน HDC ด้วย GPT</div>
           </div>
         </div>
-        <button onClick={() => { localStorage.removeItem('chat_ai_session'); setMessages([])}} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px', borderRadius: '10px', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }} onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.color = '#ef4444'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}><Trash2 size={16} /> ล้างการสนทนา</button>
+        <button onClick={() => { localStorage.removeItem('chat_gpt_session'); setMessages([])}} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px', borderRadius: '10px', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }} onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.color = '#ef4444'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}><Trash2 size={16} /> ล้างการสนทนา</button>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
