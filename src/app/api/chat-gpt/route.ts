@@ -213,20 +213,24 @@ export async function POST(req: Request) {
       conversation.push({
         role: 'assistant',
         content: assistant.content ?? '',
-        tool_calls: toolCalls.map(call => ({
-          id: call.id,
-          type: 'function',
-          function: {
-            name: call.function.name,
-            arguments: call.function.arguments,
-          },
-        })),
+        tool_calls: toolCalls.map(call => {
+          const functionInfo = 'function' in call ? call.function : { name: '', arguments: '' };
+          return {
+            id: call.id,
+            type: 'function',
+            function: {
+              name: functionInfo.name,
+              arguments: functionInfo.arguments,
+            },
+          };
+        }),
       } as ChatCompletionMessageParam)
 
       for (const call of toolCalls) {
         let result = ''
         try {
-          const parsedArgs = JSON.parse(call.function.arguments || '{}') as ToolCallArgs
+          const functionArgs = 'function' in call ? call.function.arguments : '{}';
+          const parsedArgs = JSON.parse(functionArgs || '{}') as ToolCallArgs
           const sql = String(parsedArgs.sql ?? '')
           if (!sql) {
             throw new Error('Missing sql')
