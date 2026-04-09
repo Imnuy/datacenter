@@ -141,9 +141,9 @@ export async function POST(req: Request) {
         orMessages.push(message);
         
         for (const toolCall of message.tool_calls) {
-          // Check for function type and tool name safely
-          if ('function' in toolCall && toolCall.function?.name === "query_datacenter") {
-            const args = JSON.parse(toolCall.function.arguments);
+          const tc = toolCall as any;
+          if (tc.type === 'function' && tc.function?.name === "query_datacenter") {
+            const args = JSON.parse(tc.function.arguments);
             let result = "";
             try {
               const dbCli = runDbCli(args.sql);

@@ -214,13 +214,13 @@ export async function POST(req: Request) {
         role: 'assistant',
         content: assistant.content ?? '',
         tool_calls: toolCalls.map(call => {
-          const functionInfo = 'function' in call ? call.function : { name: '', arguments: '' };
+          const c = call as any;
           return {
-            id: call.id,
+            id: c.id,
             type: 'function',
             function: {
-              name: functionInfo.name,
-              arguments: functionInfo.arguments,
+              name: c.function?.name || '',
+              arguments: c.function?.arguments || '',
             },
           };
         }),
@@ -229,8 +229,8 @@ export async function POST(req: Request) {
       for (const call of toolCalls) {
         let result = ''
         try {
-          const functionArgs = 'function' in call ? call.function.arguments : '{}';
-          const parsedArgs = JSON.parse(functionArgs || '{}') as ToolCallArgs
+          const c = call as any;
+          const parsedArgs = JSON.parse(c.function?.arguments || '{}') as ToolCallArgs
           const sql = String(parsedArgs.sql ?? '')
           if (!sql) {
             throw new Error('Missing sql')
