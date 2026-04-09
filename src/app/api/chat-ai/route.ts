@@ -141,7 +141,8 @@ export async function POST(req: Request) {
         orMessages.push(message);
         
         for (const toolCall of message.tool_calls) {
-          if (toolCall.function?.name === "query_datacenter") {
+          // Check for function type and tool name safely
+          if ('function' in toolCall && toolCall.function?.name === "query_datacenter") {
             const args = JSON.parse(toolCall.function.arguments);
             let result = "";
             try {
