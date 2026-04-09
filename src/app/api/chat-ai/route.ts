@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { spawnSync } from "child_process";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || "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",
+  apiKey: process.env.OPENROUTER_API_KEY || "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",
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": "http://localhost:3000",
