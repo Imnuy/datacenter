@@ -16,18 +16,53 @@ import {
     Syringe,
     Heart
 } from 'lucide-react'
-import { getDashboardSummary, DashboardSummary } from '@/app/actions/dashboard'
+import type { DashboardSummary } from '@/lib/dashboard-types'
 
 export default function DashboardOverview() {
     const [data, setData] = useState<DashboardSummary | null>(null)
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
 
     useEffect(() => {
-        getDashboardSummary()
-            .then(setData)
-            .catch(console.error)
-            .finally(() => setLoading(false))
+        const controller = new AbortController()
+
+        const load = async () => {
+            try {
+                setError('')
+                const res = await fetch('/api/dashboard/summary', { signal: controller.signal })
+                const json = await res.json()
+
+                if (!res.ok || !json.success) {
+                    throw new Error(json.error || 'Failed to load dashboard summary')
+                }
+
+                setData(json.data)
+            } catch (err: any) {
+                if (err?.name !== 'AbortError') {
+                    setError(err?.message || 'Failed to load dashboard summary')
+                    setData(null)
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false)
+                }
+            }
+        }
+
+        load()
+
+        return () => controller.abort()
     }, [])
+
+    const hospitalTypes = data?.hospitalTypes ?? []
+    const patientAges = data?.patientAges ?? []
+    const genderStats = data?.genderStats ?? {
+        total: 0,
+        male: 0,
+        female: 0,
+        malePercent: 0,
+        femalePercent: 0,
+    }
 
     if (loading) {
         return (
@@ -41,6 +76,12 @@ export default function DashboardOverview() {
 
     return (
         <div className="animate-fade-in space-y-8 pb-12">
+            {error && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {error}
+                </div>
+            )}
+
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-slate-800 mb-1">ภาพรวม Dashboard</h1>
@@ -82,7 +123,7 @@ export default function DashboardOverview() {
                     <div className="relative w-44 h-44 mb-6">
                         <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
                             <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f1f5f9" strokeWidth="4" />
-                            {data?.hospitalTypes.reduce((acc, type, i) => {
+                            {hospitalTypes.reduce((acc, type, i) => {
                                 const offset = acc.currentOffset
                                 acc.currentOffset += type.percentage
                                 return {
@@ -108,7 +149,7 @@ export default function DashboardOverview() {
                         </div>
                     </div>
                     <div className="w-full space-y-2 text-sm">
-                        {data?.hospitalTypes.map((type, i) => (
+                        {hospitalTypes.map((type, i) => (
                             <div key={i} className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-slate-600">
                                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }}></div>
@@ -184,7 +225,7 @@ export default function DashboardOverview() {
                     <div className="relative w-44 h-44 mb-6">
                         <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
                             <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f1f5f9" strokeWidth="4" />
-                            {data?.patientAges.reduce((acc, age, i) => {
+                            {patientAges.reduce((acc, age, i) => {
                                 const offset = acc.currentOffset
                                 acc.currentOffset += age.percentage
                                 return {
@@ -211,7 +252,7 @@ export default function DashboardOverview() {
                         </div>
                     </div>
                     <div className="w-full space-y-2 text-sm">
-                        {data?.patientAges.map((age, i) => (
+                        {patientAges.map((age, i) => (
                             <div key={i} className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-slate-600">
                                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: age.color }}></div>
@@ -235,12 +276,12 @@ export default function DashboardOverview() {
                     <div>
                         <div className="text-sm opacity-80 mb-2">สถิติรวมประชากรทั้งพื้นที่</div>
                         <div className="flex gap-6 text-sm font-medium">
-                            <span className="flex items-center gap-2">👱‍♂️ ชาย: {fmt(data?.genderStats.male)} คน ({data?.genderStats.malePercent}%)</span>
-                            <span className="flex items-center gap-2">👩 หญิง: {fmt(data?.genderStats.female)} คน ({data?.genderStats.femalePercent}%)</span>
+                            <span className="flex items-center gap-2">👱‍♂️ ชาย: {fmt(genderStats.male)} คน ({genderStats.malePercent}%)</span>
+                            <span className="flex items-center gap-2">👩 หญิง: {fmt(genderStats.female)} คน ({genderStats.femalePercent}%)</span>
                         </div>
                     </div>
                     <div className="text-right">
-                        <div className="text-4xl font-bold">{fmt(data?.genderStats.total)}</div>
+                        <div className="text-4xl font-bold">{fmt(genderStats.total)}</div>
                         <div className="text-xs opacity-80 uppercase tracking-widest">Grand Total</div>
                     </div>
                 </div>
@@ -254,12 +295,12 @@ export default function DashboardOverview() {
                                 </div>
                                 <span className="font-bold text-slate-700">เพศชาย</span>
                             </div>
-                            <span className="text-2xl font-bold text-cyan-600">{data?.genderStats.malePercent}%</span>
+                            <span className="text-2xl font-bold text-cyan-600">{genderStats.malePercent}%</span>
                         </div>
                         <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
-                            <div className="h-full bg-cyan-400" style={{ width: `${data?.genderStats.malePercent}%` }}></div>
+                            <div className="h-full bg-cyan-400" style={{ width: `${genderStats.malePercent}%` }}></div>
                         </div>
-                        <p className="text-sm text-slate-400">จำนวนทั้งหมด {fmt(data?.genderStats.male)} คน จากประชากรที่ยังไม่จำหน่าย</p>
+                        <p className="text-sm text-slate-400">จำนวนทั้งหมด {fmt(genderStats.male)} คน จากประชากรที่ยังไม่จำหน่าย</p>
                     </div>
 
                     <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 space-y-6">
@@ -270,12 +311,12 @@ export default function DashboardOverview() {
                                 </div>
                                 <span className="font-bold text-slate-700">เพศหญิง</span>
                             </div>
-                            <span className="text-2xl font-bold text-rose-500">{data?.genderStats.femalePercent}%</span>
+                            <span className="text-2xl font-bold text-rose-500">{genderStats.femalePercent}%</span>
                         </div>
                         <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
-                            <div className="h-full bg-rose-400" style={{ width: `${data?.genderStats.femalePercent}%` }}></div>
+                            <div className="h-full bg-rose-400" style={{ width: `${genderStats.femalePercent}%` }}></div>
                         </div>
-                        <p className="text-sm text-slate-400">จำนวนทั้งหมด {fmt(data?.genderStats.female)} คน จากประชากรที่ยังไม่จำหน่าย</p>
+                        <p className="text-sm text-slate-400">จำนวนทั้งหมด {fmt(genderStats.female)} คน จากประชากรที่ยังไม่จำหน่าย</p>
                     </div>
                 </div>
             </div>

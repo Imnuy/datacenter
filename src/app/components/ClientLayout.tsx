@@ -30,7 +30,8 @@ const MENU_LABELS: Record<string, string> = {
     '/report/monthly': 'รายงานรายเดือน',
     '/report/annual': 'รายงานประจำปี',
     '/custom-report': 'CUSTOM-Report',
-    '/chat-ai': 'Chat AI (Gemini)',
+    '/chat-ai': 'Chat AI (Nemotron)',
+
     '/settings': 'ตั้งค่าระบบ',
 }
 

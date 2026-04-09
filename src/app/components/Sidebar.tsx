@@ -7,7 +7,7 @@ import {
     FlaskConical, Stethoscope, FileText, TrendingUp,
     Settings, ChevronLeft, ChevronRight, Database,
     Heart, Baby, Pill, Syringe, ClipboardList,
-    Map, BarChart3, Wallet, MessageSquare
+    Map, BarChart3, Wallet, MessageSquare, Bot
 } from 'lucide-react'
 
 export interface MenuItem {
@@ -72,6 +72,7 @@ const menuItems: MenuItem[] = [
     { href: '/reimbursement', label: 'จัดเก็บรายได้', icon: <Wallet size={20} /> },
     { href: '/custom-report', label: 'CUSTOM-Report', icon: <FileText size={20} /> },
     { href: '/chat-ai', label: 'Chat AI', icon: <MessageSquare size={20} /> },
+
 
 
     {

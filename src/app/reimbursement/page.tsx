@@ -2,6 +2,9 @@ import pool from '@/lib/db'
 import type { RowDataPacket } from 'mysql2/promise'
 import ReimbursementClient from './ReimbursementClient'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 /* ── helper: parse MySQL DECIMAL strings ── */
 const num = (v: unknown): number => {
     if (typeof v === 'number') return v

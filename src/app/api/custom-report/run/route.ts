@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import pool from '@/lib/db'
+import { customReportHasPassKeyColumn } from '@/lib/custom-report-schema'
 
 const MAX_ROWS = 2000
 
@@ -31,8 +32,11 @@ export async function POST(request: Request) {
         const conn = await pool.getConnection()
         try {
             await conn.execute("SET NAMES 'utf8mb4'")
+            const hasPassKey = await customReportHasPassKeyColumn()
             const [metaRows] = await conn.execute(
-                `SELECT id, report_name, sql_command, pass_key, is_active, d_update FROM custom_report WHERE id = ? LIMIT 1`,
+                hasPassKey
+                    ? `SELECT id, report_name, sql_command, pass_key, is_active, d_update FROM custom_report WHERE id = ? LIMIT 1`
+                    : `SELECT id, report_name, sql_command, is_active, d_update FROM custom_report WHERE id = ? LIMIT 1`,
                 [id]
             ) as any
 
@@ -45,7 +49,7 @@ export async function POST(request: Request) {
                 return NextResponse.json({ success: false, error: 'Report is not active' }, { status: 400 })
             }
 
-            const expectedPassKey = String(meta.pass_key ?? '').trim()
+            const expectedPassKey = hasPassKey ? String(meta.pass_key ?? '').trim() : ''
             
             // If pass_key is configured, require it and validate
             if (expectedPassKey) {

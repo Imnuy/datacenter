@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import pool from '@/lib/db'
 import type { ResultSetHeader } from 'mysql2/promise'
+import { customReportHasPassKeyColumn } from '@/lib/custom-report-schema'
 
 type UpdateBody = {
     id?: number
@@ -53,12 +54,20 @@ export async function POST(request: Request) {
 
         const conn = await pool.getConnection()
         try {
-            const [result] = await conn.execute<ResultSetHeader>(
-                `UPDATE custom_report
-                 SET report_name = ?, sql_command = ?, pass_key = ?, d_update = NOW()
-                 WHERE id = ?`,
-                [report_name, sql_command, pass_key, id]
-            )
+            const hasPassKey = await customReportHasPassKeyColumn()
+            const [result] = hasPassKey
+                ? await conn.execute<ResultSetHeader>(
+                    `UPDATE custom_report
+                     SET report_name = ?, sql_command = ?, pass_key = ?, d_update = NOW()
+                     WHERE id = ?`,
+                    [report_name, sql_command, pass_key, id]
+                )
+                : await conn.execute<ResultSetHeader>(
+                    `UPDATE custom_report
+                     SET report_name = ?, sql_command = ?, d_update = NOW()
+                     WHERE id = ?`,
+                    [report_name, sql_command, id]
+                )
 
             if (!result.affectedRows) {
                 return NextResponse.json({ success: false, error: 'Report not found' }, { status: 404 })

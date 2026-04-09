@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
-      tools: [{ functionDeclarations: [queryDatacenterFunctionDeclaration] }],
+      tools: [{ functionDeclarations: [queryDatacenterFunctionDeclaration as any] }] as any,
       systemInstruction: "You are a database assistant locked STRICTLY to the 'datacenter' database ONLY. You MUST NOT allow users to switch databases, query other databases, or run drop/delete/update commands.\n\nWhen you use the query_datacenter function, the result will be in a pipe-separated format. Your job is to parse that result and ALWAYS display it to the user as a beautifully formatted Markdown table.\n\nIMPORTANT: If the user asks to summarize and 'plot a chart/graph' based on the data, you MUST ALSO output a codeblock with the language `chart` containing valid JSON with the following schema: { \"type\": \"bar|line|pie\", \"title\": \"Chart Title\", \"xAxisLabel\": \"X-Axis Label\", \"yAxisLabel\": \"Y-Axis Label\", \"data\": [ { \"name\": \"Label 1\", \"value\": 100 }, { \"name\": \"Label 2\", \"value\": 150 } ] }. Always include both the Markdown table AND the chart code block if a chart is requested.",
     });
 
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
           }
 
           // --- Function Call Handling ---
-          const sql = String(functionCall.args?.sql_query || "");
+          const sql = String((functionCall.args as any)?.sql_query || "");
           let outputData = "";
 
           const executingMsg = `\n\n*กำลังค้นหาข้อมูลจากฐานข้อมูล...*\n\n\`\`\`sql\n${sql}\n\`\`\`\n\n`;
